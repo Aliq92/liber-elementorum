@@ -1,0 +1,51 @@
+:root {
+  --bg-deep: #05040c;
+  --bg-mid: #0d0820;
+  --violet: #7c5cff;
+  --violet-soft: #b9a6ff;
+  --gold: #e8c887;
+  --text-primary: #f1ecff;
+  --text-muted: #a89cc9;
+
+  --font-display: "Cinzel", serif;
+  --font-body: "EB Garamond", serif;
+
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-premium: cubic-bezier(0.16, 0.84, 0.44, 1);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  font-family: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="42%" r="55%">
+      <stop offset="0%" stop-color="#120a22"/>
+      <stop offset="60%" stop-color="#08050f"/>
+      <stop offset="100%" stop-color="#05040c"/>
+    </radialGradient>
+    <radialGradient id="plate" cx="50%" cy="38%" r="60%">
+      <stop offset="0%" stop-color="#241839"/>
+      <stop offset="100%" stop-color="#100a1c"/>
+    </radialGradient>
+    <filter id="glow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="14" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="1200" fill="url(#bg)"/>
+
+  <g transform="translate(0,-40)">
+    <circle cx="600" cy="560" r="180" fill="none" stroke="#7c5cff" stroke-width="2" stroke-dasharray="3 11" opacity="0.45"/>
+    <circle cx="600" cy="560" r="148" fill="url(#plate)" stroke="#7c5cff" stroke-width="2.5" opacity="0.85"/>
+
+    <g filter="url(#glow)">
+      <path d="M600 470 L624 546 L600 560 L576 546 Z" fill="#ff5a1f"/>
+      <path d="M690 560 L614 584 L600 560 L614 536 Z" fill="#29b6f6"/>
+      <path d="M600 650 L576 574 L600 560 L624 574 Z" fill="#a97c50"/>
+      <path d="M510 560 L586 536 L600 560 L586 584 Z" fill="#bcd4ff"/>
+      <circle cx="600" cy="560" r="19" fill="#e8c887"/>
+    </g>
+  </g>
+
+  <text x="600" y="820" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif"
+        font-size="42" letter-spacing="10" fill="#a89cc9" opacity="0.8">ARCANE INTERFACE</text>
+</svg>

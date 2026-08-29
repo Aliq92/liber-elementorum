@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Arcane Interface</title>
+<meta name="description" content="An interactive elemental archive." />
+<meta name="theme-color" content="#05040c" />
+<meta name="color-scheme" content="dark" />
+<!-- Android/Chrome install-to-homescreen chrome and status bar tinting -->
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Arcane" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
+<!-- inline so the app stays dependency-free and never 404s for a favicon -->
+<link
+  rel="icon"
+  href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' fill='%2305040c'/%3E%3Cpath d='M24 9 41 38H7Z' fill='none' stroke='%23b9a6ff' stroke-width='3' stroke-linejoin='round'/%3E%3C/svg%3E"
+/>
+<!-- Fonts are bundled locally (src/styles/fonts.css + src/assets/fonts/) so the
+     app works fully offline in the Capacitor/Android build, which has no
+     network access. See fonts.css for licensing notes. -->
+<link rel="stylesheet" href="src/styles/fonts.css" />
+<link rel="stylesheet" href="src/styles/base.css" />
+<link rel="stylesheet" href="src/styles/layout.css" />
+<link rel="stylesheet" href="src/styles/button.css" />
+<link rel="stylesheet" href="src/styles/spell-display.css" />
+</head>
+<body>
+<main class="arcane-stage" id="arcane-stage">
+
+  <div class="arcane-bg" aria-hidden="true">
+    <div class="bg-fog bg-fog--a"></div>
+    <div class="bg-fog bg-fog--b"></div>
+    <div class="bg-vortex"></div>
+    <div class="bg-stars"></div>
+    <div class="bg-vignette"></div>
+  </div>
+
+  <canvas id="particle-layer" aria-hidden="true"></canvas>
+
+  <div class="spell-backdrop" id="spell-backdrop" aria-hidden="true"></div>
+
+  <button class="sound-toggle" id="sound-toggle" type="button" aria-pressed="true" aria-label="Toggle spell chimes">
+    <svg viewBox="0 0 24 24" class="icon-on"><path fill="currentColor" d="M4 9v6h4l5 5V4L8 9H4z"/><path fill="currentColor" d="M16.5 12a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4z"/></svg>
+    <svg viewBox="0 0 24 24" class="icon-off"><path fill="currentColor" d="M4 9v6h4l5 5V4L8 9H4z"/><path fill="currentColor" d="M15.5 8.5 21 14M21 8.5l-5.5 5.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+  </button>
+
+  <button class="quality-toggle" id="quality-toggle" type="button" aria-label="Visual quality: Auto. Tap to change.">
+    <span class="quality-toggle__label" aria-hidden="true">A</span>
+  </button>
+
+  <!-- Scene layer: decorative geometry and the core plate. Sits BEHIND the
+       spell card (the core carries a backdrop-filter, which would blur the
+       card's text if it painted on top of it). -->
+  <div class="arcane-ring arcane-ring--scene" id="arcane-ring">
+    <div class="ring-float">
+      <div class="ring-scene" id="ring-scene">
+
+        <div class="ring-geo" aria-hidden="true">
+          <div class="ring-orbit ring-orbit--outer"></div>
+          <div class="ring-orbit ring-orbit--inner"></div>
+          <div class="ring-runes"></div>
+
+          <svg class="ring-arc ring-arc--a" viewBox="0 0 200 200">
+            <circle cx="100" cy="100" r="92" />
+          </svg>
+          <svg class="ring-arc ring-arc--b" viewBox="0 0 200 200">
+            <circle cx="100" cy="100" r="76" />
+          </svg>
+
+          <div class="ring-satellites">
+            <span class="satellite"></span>
+            <span class="satellite"></span>
+            <span class="satellite"></span>
+          </div>
+
+          <div class="cast-beam" id="cast-beam"></div>
+          <div class="align-ring"></div>
+        </div>
+
+        <div class="ring-core" id="ring-core">
+          <div class="ring-core__hint" id="ring-core-hint">
+            <p class="ring-core__title">Select an element</p>
+            <p class="ring-core__keys">
+              <span>Tap to inspect</span>
+              <span>Hold to invoke</span>
+            </p>
+          </div>
+          <div class="ring-core__glyph" id="ring-core-glyph" aria-hidden="true"></div>
+          <div class="ring-core__charge" aria-hidden="true"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls layer: the four elemental buttons only. Sits ABOVE the spell
+       card so they stay reachable, while carrying no backdrop-filter or large
+       painted surface that could obscure the card. -->
+  <div class="arcane-ring arcane-ring--controls">
+    <div class="ring-float">
+      <div class="ring-scene" id="ring-scene-controls">
+
+        <div class="ring-buttons">
+          <button class="spell-button pos-top" type="button" data-element="ignis" aria-label="Cast Ignis">
+            <span class="spell-button__face">
+              <span class="spell-button__aura" aria-hidden="true"></span>
+              <span class="spell-button__energy" aria-hidden="true"></span>
+              <span class="spell-button__rune" aria-hidden="true"></span>
+              <span class="spell-button__rune spell-button__rune--inner" aria-hidden="true"></span>
+              <span class="spell-button__ripple" aria-hidden="true"></span>
+              <span class="spell-button__glyph"></span>
+              <span class="spell-button__label">Ignis</span>
+            </span>
+          </button>
+          <button class="spell-button pos-right" type="button" data-element="aqua" aria-label="Cast Aqua">
+            <span class="spell-button__face">
+              <span class="spell-button__aura" aria-hidden="true"></span>
+              <span class="spell-button__energy" aria-hidden="true"></span>
+              <span class="spell-button__rune" aria-hidden="true"></span>
+              <span class="spell-button__rune spell-button__rune--inner" aria-hidden="true"></span>
+              <span class="spell-button__ripple" aria-hidden="true"></span>
+              <span class="spell-button__glyph"></span>
+              <span class="spell-button__label">Aqua</span>
+            </span>
+          </button>
+          <button class="spell-button pos-bottom" type="button" data-element="terra" aria-label="Cast Terra">
+            <span class="spell-button__face">
+              <span class="spell-button__aura" aria-hidden="true"></span>
+              <span class="spell-button__energy" aria-hidden="true"></span>
+              <span class="spell-button__rune" aria-hidden="true"></span>
+              <span class="spell-button__rune spell-button__rune--inner" aria-hidden="true"></span>
+              <span class="spell-button__ripple" aria-hidden="true"></span>
+              <span class="spell-button__glyph"></span>
+              <span class="spell-button__label">Terra</span>
+            </span>
+          </button>
+          <button class="spell-button pos-left" type="button" data-element="aeris" aria-label="Cast Aeris">
+            <span class="spell-button__face">
+              <span class="spell-button__aura" aria-hidden="true"></span>
+              <span class="spell-button__energy" aria-hidden="true"></span>
+              <span class="spell-button__rune" aria-hidden="true"></span>
+              <span class="spell-button__rune spell-button__rune--inner" aria-hidden="true"></span>
+              <span class="spell-button__ripple" aria-hidden="true"></span>
+              <span class="spell-button__glyph"></span>
+              <span class="spell-button__label">Aeris</span>
+            </span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <section class="spell-display" id="spell-display" aria-live="polite">
+    <article class="spell-display__card" id="spell-card"></article>
+  </section>
+
+  <p class="archive-inscription" aria-hidden="true">Liber Elementorum <span>·</span> Elemental Archive</p>
+
+</main>
+
+<script type="module" src="src/main.js"></script>
+</body>
+</html>

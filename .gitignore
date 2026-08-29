@@ -1,0 +1,41 @@
+# --- npm / Capacitor ---
+node_modules/
+www/
+
+# --- generated build staging (scripts/build.js output, copied into the
+#     native project by `cap sync` — always regenerable from src/) ---
+android/app/src/main/assets/public/
+android/app/src/main/assets/capacitor.config.json
+
+# --- Android / Gradle build output ---
+android/**/build/
+android/.gradle/
+android/captures/
+android/local.properties
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# --- Android Studio / IDE ---
+android/.idea/
+android/*.iml
+android/app/*.iml
+android/.cxx/
+
+# --- signing: NEVER commit a keystore or its credentials ---
+*.keystore
+*.jks
+keystore.properties
+
+# --- one-off icon regeneration output ---
+icon-source/out/
+icon-source/receiver.log
+
+# --- python ---
+__pycache__/
+*.pyc
+
+# --- OS cruft ---
+.DS_Store
+Thumbs.db

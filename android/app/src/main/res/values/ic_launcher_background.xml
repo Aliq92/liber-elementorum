@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Unreferenced now that the adaptive icon uses a raster background
+         (@mipmap/ic_launcher_background); kept in sync anyway in case any
+         tooling falls back to it. -->
+    <color name="ic_launcher_background">#05040c</color>
+</resources>

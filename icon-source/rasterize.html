@@ -1,0 +1,134 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>rasterize</title></head>
+<body>
+<script>
+async function loadImage(url) {
+  const res = await fetch(url);
+  const svgText = await res.text();
+  const blob = new Blob([svgText], { type: "image/svg+xml" });
+  const blobUrl = URL.createObjectURL(blob);
+  const img = new Image();
+  await new Promise((resolve, reject) => {
+    img.onload = resolve;
+    img.onerror = reject;
+    img.src = blobUrl;
+  });
+  URL.revokeObjectURL(blobUrl);
+  return img;
+}
+
+function renderSquare(img, size) {
+  const c = document.createElement("canvas");
+  c.width = size;
+  c.height = size;
+  const ctx = c.getContext("2d");
+  ctx.drawImage(img, 0, 0, size, size);
+  return c.toDataURL("image/png");
+}
+
+/** Cover-crop img (assumed square source) into a w×h canvas, centered. */
+function renderCover(img, w, h) {
+  const c = document.createElement("canvas");
+  c.width = w;
+  c.height = h;
+  const ctx = c.getContext("2d");
+  const scale = Math.max(w / img.width, h / img.height);
+  const dw = img.width * scale;
+  const dh = img.height * scale;
+  ctx.drawImage(img, (w - dw) / 2, (h - dh) / 2, dw, dh);
+  return c.toDataURL("image/png");
+}
+
+function renderRound(img, size) {
+  const c = document.createElement("canvas");
+  c.width = size;
+  c.height = size;
+  const ctx = c.getContext("2d");
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+  ctx.closePath();
+  ctx.clip();
+  ctx.drawImage(img, 0, 0, size, size);
+  ctx.restore();
+  return c.toDataURL("image/png");
+}
+
+window.rasterizeAll = async function () {
+  const out = {};
+
+  const combined = await loadImage("icon-source.svg");
+  const foreground = await loadImage("icon-foreground.svg");
+  const background = await loadImage("icon-background.svg");
+  const splash = await loadImage("splash-source.svg");
+
+  const legacyDensities = { mdpi: 48, hdpi: 72, xhdpi: 96, xxhdpi: 144, xxxhdpi: 192 };
+  const adaptiveDensities = { mdpi: 108, hdpi: 162, xhdpi: 216, xxhdpi: 324, xxxhdpi: 432 };
+
+  for (const [density, size] of Object.entries(legacyDensities)) {
+    out[`mipmap-${density}/ic_launcher.png`] = renderSquare(combined, size);
+    out[`mipmap-${density}/ic_launcher_round.png`] = renderRound(combined, size);
+  }
+  for (const [density, size] of Object.entries(adaptiveDensities)) {
+    out[`mipmap-${density}/ic_launcher_foreground.png`] = renderSquare(foreground, size);
+    out[`mipmap-${density}/ic_launcher_background.png`] = renderSquare(background, size);
+  }
+
+  out["play-store-icon-512.png"] = renderSquare(combined, 512);
+
+  // PWA manifest icons. `combined` already has a full-bleed background and
+  // the rune kept well inside the safe zone (outer ring radius 330 of a 512
+  // half-width => well within the ~40%-radius maskable safe circle), so the
+  // same source works for both "any" and "maskable" purpose without a
+  // separate layout.
+  out["icons/icon-192.png"] = renderSquare(combined, 192);
+  out["icons/icon-512.png"] = renderSquare(combined, 512);
+  out["icons/maskable-192.png"] = renderSquare(combined, 192);
+  out["icons/maskable-512.png"] = renderSquare(combined, 512);
+
+  // Match the existing template's exact splash slots (classic Capacitor/
+  // Cordova splash mechanism: one PNG per density × orientation, referenced
+  // by filename, not by an XML you can repoint) so only the pixels change.
+  const splashSizes = {
+    "drawable/splash.png": [480, 320],
+    "drawable-port-mdpi/splash.png": [320, 480],
+    "drawable-port-hdpi/splash.png": [480, 800],
+    "drawable-port-xhdpi/splash.png": [720, 1280],
+    "drawable-port-xxhdpi/splash.png": [960, 1600],
+    "drawable-port-xxxhdpi/splash.png": [1280, 1920],
+    "drawable-land-mdpi/splash.png": [480, 320],
+    "drawable-land-hdpi/splash.png": [800, 480],
+    "drawable-land-xhdpi/splash.png": [1280, 720],
+    "drawable-land-xxhdpi/splash.png": [1600, 960],
+    "drawable-land-xxxhdpi/splash.png": [1920, 1280],
+  };
+  for (const [name, [w, h]] of Object.entries(splashSizes)) {
+    out[name] = renderCover(splash, w, h);
+  }
+
+  window.__rasterResult = out;
+  document.title = "rasterize-done";
+  return Object.keys(out).length;
+};
+
+// Ship each PNG straight to a local receiver process instead of returning the
+// data through the agent's own tool-call context — that would mean pasting
+// megabytes of base64 through text the agent has to read, which is both
+// wasteful and pointless when the bytes can go straight to disk.
+window.uploadAll = async function () {
+  const results = [];
+  for (const [name, dataUrl] of Object.entries(window.__rasterResult)) {
+    const res = await fetch("http://127.0.0.1:5180/save", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, dataUrl }),
+    });
+    results.push(`${name}: ${res.status}`);
+  }
+  document.title = "upload-done";
+  return results.join("\n");
+};
+</script>
+</body>
+</html>

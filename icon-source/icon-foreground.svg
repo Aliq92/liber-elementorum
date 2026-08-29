@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <radialGradient id="plate" cx="50%" cy="38%" r="60%">
+      <stop offset="0%" stop-color="#2a1c4a"/>
+      <stop offset="100%" stop-color="#120a22"/>
+    </radialGradient>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="18" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <circle cx="512" cy="512" r="330" fill="none" stroke="#7c5cff" stroke-width="3" stroke-dasharray="4 14" opacity="0.5"/>
+  <circle cx="512" cy="512" r="270" fill="url(#plate)" stroke="#7c5cff" stroke-width="4" opacity="0.9"/>
+
+  <!-- compass rune: four points at N/E/S/W, matching the app's own
+       Ignis(top) / Aqua(right) / Terra(bottom) / Aeris(left) layout -->
+  <g filter="url(#glow)">
+    <path d="M512 250 L556 470 L512 512 L468 470 Z" fill="#ff5a1f"/>
+    <path d="M774 512 L554 556 L512 512 L554 468 Z" fill="#29b6f6"/>
+    <path d="M512 774 L468 554 L512 512 L556 554 Z" fill="#a97c50"/>
+    <path d="M250 512 L470 468 L512 512 L470 556 Z" fill="#bcd4ff"/>
+    <circle cx="512" cy="512" r="34" fill="#e8c887"/>
+  </g>
+</svg>

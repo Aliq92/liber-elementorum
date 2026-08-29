@@ -1,0 +1,455 @@
+.spell-button {
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  perspective: 600px;
+  pointer-events: auto;
+}
+
+.spell-button:focus-visible .spell-button__face {
+  outline: 2px solid var(--gold);
+  outline-offset: 4px;
+}
+
+/* ---------- face : the pressable crystal ---------- */
+
+.spell-button__face {
+  --tilt-x: 0deg;
+  --tilt-y: 0deg;
+  --press: 0px;
+  --lift: 0px;
+  --scale: 1;
+  --press-depth: 6px;
+  --rebound-duration: 0.4s;
+  --px: 50%;
+  --py: 50%;
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+
+  width: var(--btn-size);
+  height: var(--btn-size);
+  border-radius: 30%;
+
+  background-image: radial-gradient(
+      circle at 35% 28%,
+      color-mix(in srgb, var(--btn-color-soft) 75%, white) 0%,
+      var(--btn-color) 46%,
+      color-mix(in srgb, var(--btn-color) 55%, black) 100%
+    ), repeating-radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.07) 0, rgba(255, 255, 255, 0.07) 1px, transparent 1px, transparent 3px);
+  background-blend-mode: normal, overlay;
+
+  border: 1px solid color-mix(in srgb, var(--btn-color-soft) 55%, transparent);
+
+  box-shadow: 0 calc(10px - var(--press)) 0 0 color-mix(in srgb, var(--btn-color) 45%, black),
+    0 calc(18px - var(--press) * 1.4) 30px -8px color-mix(in srgb, var(--btn-color) 75%, transparent),
+    inset 0 2px 5px rgba(255, 255, 255, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -8px 12px rgba(0, 0, 0, 0.35);
+
+  transform: perspective(600px) rotateX(var(--tilt-y)) rotateY(var(--tilt-x)) translateZ(var(--lift)) translateY(var(--press))
+    scale(var(--scale));
+  transition: transform 0.14s ease-out, box-shadow 0.2s ease-out, filter 0.2s ease;
+  will-change: transform;
+
+  color: #211527;
+}
+
+/* Mobile/performance mode: drop the large soft outer glow layer (30px blur —
+   the most expensive of the five shadow layers to rasterize) and one inset
+   highlight. --press still tracks --charge every rAF frame during a hold, so
+   this layer repaints continuously for the whole ~800ms charge; fewer/smaller
+   layers means materially less to rasterize per frame. The button's own
+   `__aura` glow already supplies ambient light, so nothing reads as missing. */
+:root[data-quality="performance"] .spell-button__face {
+  box-shadow: 0 calc(10px - var(--press)) 0 0 color-mix(in srgb, var(--btn-color) 45%, black),
+    inset 0 2px 5px rgba(255, 255, 255, 0.4), inset 0 -8px 12px rgba(0, 0, 0, 0.35);
+}
+
+/* glassy specular highlight */
+.spell-button__face::before {
+  content: "";
+  position: absolute;
+  top: 8%;
+  left: 14%;
+  width: 46%;
+  height: 30%;
+  background: radial-gradient(ellipse, rgba(255, 255, 255, 0.55), transparent 70%);
+  border-radius: 50%;
+  filter: blur(2px);
+  opacity: 0.8;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  z-index: 0;
+}
+
+/* activation ring, sits outside the face bounds */
+.spell-button__face::after {
+  content: "";
+  position: absolute;
+  inset: -10px;
+  border-radius: 32%;
+  border: 1.5px solid var(--btn-color);
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: none;
+}
+
+/* ---------- inner layers : aura / energy / runes / ripple ---------- */
+
+.spell-button__aura {
+  position: absolute;
+  inset: -45%;
+  border-radius: 50%;
+  background: radial-gradient(circle at var(--px) var(--py), color-mix(in srgb, var(--btn-color) 85%, white) 0%, transparent 62%);
+  opacity: 0;
+  filter: blur(9px);
+  transition: opacity 0.3s ease, filter 0.25s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.spell-button__energy {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.spell-button__energy::before {
+  content: "";
+  position: absolute;
+  inset: -60%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    color-mix(in srgb, var(--btn-color-soft) 75%, white) 18deg,
+    transparent 46deg 360deg
+  );
+  opacity: 0.25;
+  mix-blend-mode: screen;
+  animation: energy-spin 6s linear infinite;
+}
+
+@keyframes energy-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spell-button__rune {
+  position: absolute;
+  inset: 8%;
+  border-radius: 50%;
+  overflow: hidden;
+  background: repeating-conic-gradient(from 0deg, rgba(255, 255, 255, 0.65) 0deg 2deg, transparent 2deg 15deg);
+  -webkit-mask: radial-gradient(circle, transparent 60%, black 62%, black 80%, transparent 82%);
+  mask: radial-gradient(circle, transparent 60%, black 62%, black 80%, transparent 82%);
+  opacity: 0.14;
+  animation: rune-spin 22s linear infinite;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.spell-button__rune--inner {
+  inset: 18%;
+  background: repeating-conic-gradient(from 0deg, rgba(255, 255, 255, 0.85) 0deg 1.2deg, transparent 1.2deg 10deg);
+  -webkit-mask: radial-gradient(circle, transparent 44%, black 46%, black 64%, transparent 66%);
+  mask: radial-gradient(circle, transparent 44%, black 46%, black 64%, transparent 66%);
+  opacity: 0;
+  animation: rune-spin-reverse 11s linear infinite;
+}
+
+@keyframes rune-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes rune-spin-reverse {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+.spell-button__ripple {
+  position: absolute;
+  left: var(--px);
+  top: var(--py);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  border: 1.5px solid color-mix(in srgb, var(--btn-color-soft) 85%, white);
+  box-shadow: 0 0 14px 2px color-mix(in srgb, var(--btn-color) 65%, transparent);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.spell-button__ripple.is-active {
+  animation: ripple-expand 0.65s var(--ease-premium) forwards;
+}
+
+@keyframes ripple-expand {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0.95;
+  }
+  65% {
+    opacity: 0.3;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(15);
+    opacity: 0;
+  }
+}
+
+.spell-button__glyph {
+  position: relative;
+  z-index: 1;
+  width: 34%;
+  height: 34%;
+  display: block;
+}
+
+.spell-button__glyph svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.spell-button__label {
+  position: relative;
+  z-index: 1;
+  font-family: var(--font-display);
+  font-size: clamp(0.62rem, 1.1vmin, 0.75rem);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+/* ---------- interaction states ---------- */
+
+.spell-button:hover .spell-button__face {
+  --scale: 1.05;
+  --lift: 14px;
+  filter: brightness(1.12);
+}
+
+.spell-button:hover .spell-button__aura,
+.spell-button.is-pressed .spell-button__aura {
+  opacity: 0.5;
+}
+
+.spell-button:hover .spell-button__rune,
+.spell-button.is-pressed .spell-button__rune {
+  opacity: 0.4;
+}
+
+.spell-button:hover .spell-button__rune--inner,
+.spell-button.is-pressed .spell-button__rune--inner {
+  opacity: 0.5;
+}
+
+.spell-button:hover .spell-button__energy::before,
+.spell-button.is-pressed .spell-button__energy::before {
+  opacity: 0.5;
+}
+
+.spell-button.is-pressed .spell-button__face {
+  --press: var(--press-depth);
+  --lift: -3px;
+  --scale: 0.95;
+  filter: brightness(1.32) saturate(1.35);
+}
+
+/* ---------- charging : progress read through depth, light and tension ---------- */
+
+.spell-button.is-charging .spell-button__face {
+  /* sinks further and tightens the deeper the charge runs */
+  --press: calc(var(--press-depth) + var(--charge, 0) * 5px);
+  --lift: calc(-3px - var(--charge, 0) * 7px);
+  --scale: calc(0.95 - var(--charge, 0) * 0.045);
+  filter: brightness(calc(1.32 + var(--charge, 0) * 0.5)) saturate(calc(1.35 + var(--charge, 0) * 0.5));
+  transition: transform 0.06s linear, filter 0.06s linear;
+  animation: charge-tremor 0.14s linear infinite;
+}
+
+/* vibration builds with the charge. Animates the independent `translate`
+   property (not `margin`): it composites on the GPU like `transform` without
+   fighting the transform chain already declared on this element, and unlike
+   `margin` it never triggers layout — a per-frame reflow was previously
+   running for the whole ~800ms hold on every long press. */
+@keyframes charge-tremor {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  25% {
+    translate: calc(var(--charge, 0) * 1.1px) calc(var(--charge, 0) * -1.1px);
+  }
+  75% {
+    translate: calc(var(--charge, 0) * -1.1px) calc(var(--charge, 0) * 1.1px);
+  }
+}
+
+.spell-button.is-charging .spell-button__aura {
+  opacity: calc(0.5 + var(--charge, 0) * 0.5);
+  /* Blur radius is fixed rather than tied to --charge: recomputing a blur
+     filter every rAF tick for the whole charge duration is one of the more
+     expensive things a mobile GPU can be asked to do every frame. Opacity
+     alone (compositor-only, no repaint) still reads as the aura "tightening". */
+  filter: blur(6px);
+}
+
+/* Desktop can afford the extra motion: the blur genuinely tightening with
+   charge reads a little richer. Gated behind quality so mobile never pays
+   for it. */
+:root[data-quality="full"] .spell-button.is-charging .spell-button__aura {
+  filter: blur(calc(9px - var(--charge, 0) * 6px));
+}
+
+.spell-button.is-charging .spell-button__rune {
+  opacity: calc(0.4 + var(--charge, 0) * 0.6);
+  animation-duration: calc(22s - var(--charge, 0) * 20s);
+}
+
+.spell-button.is-charging .spell-button__rune--inner {
+  opacity: calc(0.5 + var(--charge, 0) * 0.5);
+  animation-duration: calc(11s - var(--charge, 0) * 9.5s);
+}
+
+.spell-button.is-charging .spell-button__energy::before {
+  opacity: calc(0.5 + var(--charge, 0) * 0.5);
+  animation-duration: calc(6s - var(--charge, 0) * 5.4s);
+}
+
+.spell-button.is-charging .spell-button__glyph {
+  filter: drop-shadow(0 0 calc(var(--charge, 0) * 16px) currentColor)
+    brightness(calc(1 + var(--charge, 0) * 1.4));
+  transform: scale(calc(1 + var(--charge, 0) * 0.12));
+}
+
+/* ---------- discharge : the release flourish ---------- */
+
+.spell-button.is-discharging .spell-button__face {
+  animation: discharge-pulse 0.5s var(--ease-spring);
+}
+
+@keyframes discharge-pulse {
+  0% {
+    transform: perspective(600px) translateZ(-10px) scale(0.9);
+    filter: brightness(2.4) saturate(1.6);
+  }
+  45% {
+    transform: perspective(600px) translateZ(26px) scale(1.11);
+    filter: brightness(1.5) saturate(1.4);
+  }
+  100% {
+    transform: perspective(600px) translateZ(0) scale(1);
+    filter: brightness(1.16);
+  }
+}
+
+.spell-button.is-discharging .spell-button__face::after {
+  animation: discharge-ring 0.6s var(--ease-out);
+}
+
+@keyframes discharge-ring {
+  0% {
+    opacity: 0.95;
+    transform: scale(0.9);
+    border-width: 3px;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.1);
+    border-width: 1px;
+  }
+}
+
+.spell-button.is-pressed .spell-button__aura {
+  opacity: 0.85;
+  filter: blur(4px);
+}
+
+.spell-button.is-pressed .spell-button__energy::before {
+  animation-duration: 2.2s;
+}
+
+.spell-button.is-active .spell-button__face {
+  filter: brightness(1.16);
+}
+
+.spell-button.is-active .spell-button__face::after {
+  opacity: 0.85;
+  transform: scale(1);
+  animation: active-ring-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes active-ring-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--btn-color) 60%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 8px transparent;
+  }
+}
+
+/* short spring-back after release */
+@keyframes button-rebound {
+  0% {
+    transform: perspective(600px) rotateX(var(--tilt-y)) rotateY(var(--tilt-x)) translateZ(var(--lift)) translateY(0px)
+      scale(0.95);
+  }
+  55% {
+    transform: perspective(600px) rotateX(var(--tilt-y)) rotateY(var(--tilt-x)) translateZ(var(--lift)) translateY(0px)
+      scale(1.055);
+  }
+  100% {
+    transform: perspective(600px) rotateX(var(--tilt-y)) rotateY(var(--tilt-x)) translateZ(var(--lift)) translateY(0px)
+      scale(1);
+  }
+}
+
+.spell-button__face.is-releasing {
+  animation: button-rebound var(--rebound-duration) var(--ease-spring) both;
+}
+
+/* ---------- per-element press character ---------- */
+
+.spell-button[data-element="terra"] .spell-button__face {
+  --press-depth: 9px;
+  --rebound-duration: 0.5s;
+}
+
+.spell-button[data-element="aeris"] .spell-button__face {
+  --press-depth: 4px;
+  --rebound-duration: 0.3s;
+}
+
+@media (max-width: 640px) {
+  /* size comes from --btn-size on .arcane-stage */
+  .spell-button__label {
+    font-size: 0.58rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spell-button__face,
+  .spell-button__energy::before,
+  .spell-button__rune,
+  .spell-button__rune--inner {
+    animation: none !important;
+  }
+}

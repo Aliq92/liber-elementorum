@@ -1,0 +1,62 @@
+/**
+ * Locally bundled fonts — required for the app to work fully offline
+ * (Capacitor Android build has no network access by default).
+ *
+ * Both Cinzel and EB Garamond are licensed under the SIL Open Font License
+ * 1.1, which permits bundling and redistribution. Files are the Latin-only
+ * subset served by Google Fonts (fonts.googleapis.com/css2?family=Cinzel...),
+ * downloaded once and shipped locally — covers U+0000–00FF, which includes
+ * the þ/ð characters used in the Old English archive text.
+ *
+ * The Cinzel weights below intentionally share one file: Google Fonts itself
+ * serves the same latin-subset woff2 for weights 500/600/700, so this
+ * reproduces exactly what the CDN link previously did.
+ */
+
+@font-face {
+  font-family: "Cinzel";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("../assets/fonts/cinzel-latin.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Cinzel";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("../assets/fonts/cinzel-latin.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Cinzel";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("../assets/fonts/cinzel-latin.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "EB Garamond";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../assets/fonts/eb-garamond-regular-latin.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "EB Garamond";
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../assets/fonts/eb-garamond-italic-latin.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "EB Garamond";
+  font-style: italic;
+  font-weight: 500;
+  font-display: swap;
+  src: url("../assets/fonts/eb-garamond-italic-latin.woff2") format("woff2");
+}

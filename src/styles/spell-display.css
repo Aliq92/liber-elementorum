@@ -1,0 +1,829 @@
+.spell-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: radial-gradient(circle at 50% 45%, rgba(10, 6, 20, 0.25), rgba(3, 2, 8, 0.86) 72%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.45s ease;
+}
+
+.has-active-spell .spell-backdrop {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.spell-display {
+  --active-color: var(--violet);
+  --active-glow: rgba(124, 92, 255, 0.5);
+
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 1400px;
+  pointer-events: none;
+}
+
+.spell-display__card {
+  --origin-x: 0;
+  --origin-y: 1;
+
+  position: relative;
+  width: min(88vw, 440px);
+  /* Stay inside the band between the top and bottom controls so the card
+     never buries them (and they never bury the card's own controls).
+     Floored so the card stays usable on short/narrow screens. */
+  max-height: min(86vh, max(340px, var(--card-clear-band, 440px)));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 2.1rem 2.2rem 1.9rem;
+  border-radius: 22px;
+  text-align: center;
+
+  background: linear-gradient(160deg, rgba(24, 17, 42, 0.88), rgba(9, 6, 18, 0.92));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.7), 0 0 70px -10px var(--active-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(18px);
+
+  opacity: 0;
+  transform: translate3d(calc(var(--origin-x) * 50px), calc(var(--origin-y) * 30px + 26px), -120px) rotateX(14deg)
+    scale(0.86);
+  filter: blur(8px);
+  pointer-events: none;
+  transition: opacity 0.55s var(--ease-premium), transform 0.6s var(--ease-premium), filter 0.5s ease;
+  will-change: transform;
+}
+
+/* Mobile/performance mode: the card is the single largest, longest-lived
+   backdrop-filter in the app — it sits above the canvas particle layer and
+   the animated ring/background, both of which keep moving underneath it, so
+   the browser has to resample the blur behind it continuously for as long as
+   the card is open, not just once. Swapped for a solid-enough gradient (a
+   touch darker to compensate for the lost glass-blur depth) plus the
+   existing border/inset highlight, which reads as "frosted enough" without
+   the per-frame resample cost. The entrance filter:blur() transition is
+   dropped too — opacity + transform alone still read as a premium arrival. */
+:root[data-quality="performance"] .spell-display__card {
+  background: linear-gradient(160deg, rgba(19, 13, 34, 0.97), rgba(7, 5, 15, 0.98));
+  backdrop-filter: none;
+  filter: none;
+  transition: opacity 0.5s var(--ease-premium), transform 0.55s var(--ease-premium);
+}
+
+.spell-display.is-active .spell-display__card {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) rotateX(0deg) scale(1);
+  filter: blur(0);
+  pointer-events: auto;
+}
+
+:root[data-quality="performance"] .spell-display.is-active .spell-display__card {
+  filter: none;
+}
+
+.spell-display__card.is-switching {
+  opacity: 0.08;
+  transform: translate3d(0, 10px, -60px) rotateX(9deg) scale(0.93);
+  filter: blur(5px);
+}
+
+:root[data-quality="performance"] .spell-display__card.is-switching {
+  filter: none;
+}
+
+/* floating projection: a soft light pool beneath the card */
+.spell-display__card::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -28px;
+  width: 66%;
+  height: 20px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse, var(--active-color) 0%, transparent 72%);
+  filter: blur(12px);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+/* one-shot materialization sweep */
+.spell-display__card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.55) 45%, transparent 62%);
+  opacity: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  transform: translateY(-120%);
+  z-index: 2;
+}
+
+.spell-display__card.is-materializing::before {
+  animation: materialize-sweep 0.65s ease-out;
+}
+
+@keyframes materialize-sweep {
+  0% {
+    transform: translateY(-120%);
+    opacity: 0;
+  }
+  18% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(120%);
+    opacity: 0;
+  }
+}
+
+/* ---------- manifestation stage ----------
+   Self-contained decorative area between the heading and the invocation.
+   It owns its own positioning context, so nothing in it can escape over the
+   text; it claims only a modest amount of flow height, so the orb's glow can
+   read large without inflating the card's scroll height. */
+
+.manifest-stage {
+  /* Capped so the orb's bleed above/below the stage stays over the heading and
+     the divider rule — never over the invocation paragraph. */
+  --orb-size: clamp(180px, 22vmin, 220px);
+  --orb-scale: 1;
+  --orb-strength: 1;
+
+  position: relative;
+  z-index: 0; /* below .invocation-content */
+  /* Deliberately small in FLOW terms: the orb's glow reads much larger than
+     this, but the stage must not push the invocation below the fold. */
+  height: clamp(60px, 10vmin, 104px);
+  margin: 0.55rem 0 0.1rem;
+  pointer-events: none;
+  /* no overflow clip: the glow is allowed to bleed, but it is a soft gradient
+     and the text above it is fully opaque and never blurred */
+}
+
+.manifest-orb {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--orb-size);
+  height: var(--orb-size);
+  transform: translate(-50%, -50%) scale(var(--orb-scale));
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--active-color) 70%, white) 0%,
+    color-mix(in srgb, var(--active-color) 55%, transparent) 18%,
+    color-mix(in srgb, var(--active-color) 18%, transparent) 38%,
+    transparent 62%
+  );
+  opacity: calc(0.5 * var(--orb-strength));
+  transition: transform 0.7s var(--ease-premium), opacity 0.7s ease;
+  will-change: transform, opacity;
+}
+
+.manifest-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--active-color) 45%, transparent);
+  transform: translate(-50%, -50%) scale(var(--orb-scale));
+  opacity: calc(0.55 * var(--orb-strength));
+  transition: transform 0.7s var(--ease-premium), opacity 0.7s ease;
+}
+
+.manifest-ring--outer {
+  width: calc(var(--orb-size) * 0.62);
+  height: calc(var(--orb-size) * 0.62);
+  animation: manifest-spin 26s linear infinite;
+}
+
+.manifest-ring--inner {
+  width: calc(var(--orb-size) * 0.42);
+  height: calc(var(--orb-size) * 0.42);
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--active-color) 32%, transparent);
+  animation: manifest-spin 18s linear infinite reverse;
+}
+
+@keyframes manifest-spin {
+  from {
+    transform: translate(-50%, -50%) scale(var(--orb-scale)) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) scale(var(--orb-scale)) rotate(360deg);
+  }
+}
+
+.manifest-glyph {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: clamp(44px, 7vmin, 60px);
+  height: clamp(44px, 7vmin, 60px);
+  transform: translate(-50%, -50%);
+  filter: drop-shadow(0 0 calc(12px * var(--orb-strength)) currentColor);
+  transition: filter 0.7s ease;
+}
+
+.manifest-glyph svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* CASTING: brief, loud. Bigger orb, faster rings, brighter glyph. */
+.spell-display__card.is-casting-phase .manifest-stage {
+  --orb-scale: 1.12;
+  --orb-strength: 1.9;
+}
+
+.spell-display__card.is-casting-phase .manifest-ring--outer {
+  animation-duration: 2.4s;
+}
+
+.spell-display__card.is-casting-phase .manifest-ring--inner {
+  animation-duration: 1.7s;
+}
+
+.spell-display__card.is-casting-phase .manifest-glyph {
+  animation: manifest-strike 0.7s var(--ease-spring);
+}
+
+@keyframes manifest-strike {
+  0% {
+    transform: translate(-50%, -50%) scale(2) rotate(-18deg);
+    filter: drop-shadow(0 0 34px currentColor) brightness(2.2);
+  }
+  60% {
+    transform: translate(-50%, -50%) scale(0.95) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+  }
+}
+
+/* READING: the settled state. Orb contracts and dims so the text dominates. */
+.spell-display__card:not(.is-casting-phase) .manifest-stage {
+  --orb-scale: 0.72;
+  --orb-strength: 0.72;
+}
+
+/* the archive card keeps the glyph but never the full manifestation */
+.manifest-stage--quiet {
+  --orb-scale: 0.62;
+  --orb-strength: 0.5;
+  height: clamp(64px, 10vmin, 84px);
+}
+
+/* ---------- elemental personality (size/rate only, identity preserved) ---------- */
+
+.spell-display__card[data-spell-element="ignis"] .manifest-orb {
+  animation: ember-flicker 2.6s ease-in-out infinite;
+}
+
+@keyframes ember-flicker {
+  0%,
+  100% {
+    opacity: calc(0.5 * var(--orb-strength));
+  }
+  45% {
+    opacity: calc(0.66 * var(--orb-strength));
+  }
+}
+
+.spell-display__card[data-spell-element="aqua"] .manifest-ring--outer {
+  animation-duration: 34s;
+}
+
+.spell-display__card[data-spell-element="aqua"] .manifest-orb {
+  animation: tide-swell 5.5s ease-in-out infinite;
+}
+
+@keyframes tide-swell {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(var(--orb-scale));
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(calc(var(--orb-scale) * 1.07));
+  }
+}
+
+/* earth sits heavy: slowest rings, no pulsing */
+.spell-display__card[data-spell-element="terra"] .manifest-ring--outer {
+  animation-duration: 52s;
+}
+
+.spell-display__card[data-spell-element="terra"] .manifest-ring--inner {
+  animation-duration: 40s;
+}
+
+.spell-display__card[data-spell-element="aeris"] .manifest-ring--outer {
+  animation-duration: 12s;
+}
+
+.spell-display__card[data-spell-element="aeris"] .manifest-ring--inner {
+  animation-duration: 8s;
+}
+
+/* ---------- readable content sits above every decorative layer ---------- */
+
+.spell-header,
+.invocation-content,
+.spell-brief,
+.spell-source {
+  position: relative;
+  z-index: 2;
+}
+
+/* text containers must never carry a blur/backdrop filter */
+.invocation-content {
+  filter: none;
+  backdrop-filter: none;
+}
+
+/* archival catalog marking — an index within this interface, not a shelfmark */
+.spell-card__mark {
+  position: absolute;
+  top: 1rem;
+  left: 1.2rem;
+  font-family: var(--font-display);
+  font-size: 0.55rem;
+  letter-spacing: 0.2em;
+  color: var(--text-muted);
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+/* (the old blanket `> *` z-index rule existed to lift content above the
+   full-card sigil; that layer is gone, and content layering is now explicit
+   in the manifestation-stage block above) */
+
+.spell-card__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 4vmin, 2.1rem);
+  letter-spacing: 0.06em;
+  color: var(--text-primary);
+  text-shadow: 0 0 24px var(--active-glow);
+  opacity: 0;
+  transform: translateY(8px);
+  animation: card-part-in 0.5s var(--ease-out) forwards;
+  animation-delay: 0.09s;
+}
+
+.spell-card__tagline {
+  margin: 0.3rem 0 0;
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  opacity: 0;
+  transform: translateY(8px);
+  animation: card-part-in 0.5s var(--ease-out) forwards;
+  animation-delay: 0.15s;
+}
+
+/* honest provenance label — never dressed up as a quotation mark */
+.spell-card__classification {
+  margin: 0.9rem auto 0;
+  display: inline-block;
+  padding: 0.28rem 0.7rem;
+  border: 1px solid color-mix(in srgb, var(--active-color) 40%, transparent);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--active-color) 9%, transparent);
+  font-family: var(--font-display);
+  font-size: 0.53rem;
+  letter-spacing: 0.19em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--active-color) 55%, var(--text-primary));
+  opacity: 0;
+  transform: translateY(8px);
+  animation: card-part-in 0.5s var(--ease-out) forwards;
+  animation-delay: 0.19s;
+}
+
+.spell-card__rule {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 0.8rem auto 0.95rem;
+  width: 70%;
+  color: var(--active-color);
+  opacity: 0;
+  transform: translateY(8px);
+  animation: card-part-in 0.5s var(--ease-out) forwards;
+  animation-delay: 0.24s;
+}
+
+.spell-card__rule span {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, currentColor);
+}
+
+.spell-card__rule span:last-child {
+  background: linear-gradient(90deg, currentColor, transparent);
+}
+
+.spell-card__rule i {
+  font-style: normal;
+  font-size: 0.7rem;
+}
+
+.spell-card__text {
+  margin: 0;
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: clamp(1.05rem, 2.6vmin, 1.25rem);
+  line-height: 1.7;
+  color: var(--text-primary);
+}
+
+.spell-line {
+  display: block;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: card-part-in 0.5s var(--ease-out) forwards;
+  animation-delay: calc(300ms + var(--i, 0) * 110ms);
+}
+
+/* ---------- manifestation mode ---------- */
+
+.spell-display__card.is-spell {
+  border-color: color-mix(in srgb, var(--active-color) 32%, rgba(255, 255, 255, 0.12));
+  box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.75), 0 0 100px -12px var(--active-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* the card is assembled rather than faded: it unfolds from a seam */
+.spell-display__card.is-spell.is-materializing {
+  animation: spell-assemble 0.75s var(--ease-premium);
+}
+
+@keyframes spell-assemble {
+  0% {
+    clip-path: inset(48% 0 48% 0);
+    opacity: 0.4;
+  }
+  55% {
+    clip-path: inset(0 0 0 0);
+    opacity: 1;
+  }
+  100% {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+.spell-card__eyebrow {
+  margin: 0 0 0.25rem;
+  font-family: var(--font-display);
+  font-size: 0.58rem;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--active-color);
+  opacity: 0;
+  transform: translateY(8px);
+  animation: card-part-in 0.5s var(--ease-out) forwards;
+  animation-delay: 0.07s;
+}
+
+.spell-card__title--spell {
+  font-size: clamp(1.45rem, 3.5vmin, 1.9rem);
+}
+
+.spell-incantation {
+  margin: 0 0 0.2rem;
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: clamp(1.05rem, 2.6vmin, 1.22rem);
+  line-height: 1.75;
+  color: var(--text-primary);
+  text-shadow: 0 0 26px color-mix(in srgb, var(--active-color) 30%, transparent);
+}
+
+/* squares and diminishing forms need their shape preserved */
+.spell-incantation--grid {
+  font-family: var(--font-display);
+  font-style: normal;
+  font-size: clamp(0.68rem, 1.9vmin, 0.85rem);
+  letter-spacing: 0.16em;
+  line-height: 1.85;
+  color: color-mix(in srgb, var(--active-color) 30%, var(--text-primary));
+}
+
+.spell-langnote {
+  margin: 0.85rem 0 0;
+  font-family: var(--font-display);
+  font-size: 0.5rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  opacity: 0.75;
+}
+
+.spell-translation {
+  margin: 0.7rem auto 0;
+  padding-top: 0.7rem;
+  border-top: 1px solid color-mix(in srgb, var(--active-color) 20%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.86rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.spell-brief {
+  margin: 1.4rem 0 0;
+  display: grid;
+  gap: 0.4rem;
+  text-align: left;
+  opacity: 0;
+  animation: card-part-in 0.5s var(--ease-out) forwards;
+  animation-delay: 0.55s;
+}
+
+.spell-brief .spell-source__row dd {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+
+.spell-status {
+  display: inline-block;
+  padding: 0.16rem 0.5rem;
+  border-radius: 3px;
+  font-family: var(--font-display);
+  font-size: 0.5rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.spell-status--verified {
+  border: 1px solid rgba(140, 210, 150, 0.5);
+  background: rgba(140, 210, 150, 0.12);
+  color: #a9dfb4;
+}
+
+.spell-status--paraphrase {
+  border: 1px solid rgba(232, 200, 135, 0.5);
+  background: rgba(232, 200, 135, 0.1);
+  color: var(--gold);
+}
+
+/* Controls sit side by side so their hit targets fall either side of the
+   vertically-centred top/bottom element buttons rather than underneath them. */
+.spell-source {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem 1.6rem;
+}
+
+.spell-source__panel {
+  flex: 1 0 100%;
+  order: 3;
+}
+
+.spell-return {
+  padding: 0.35rem 0.2rem;
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: 0.55rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  transition: color 0.25s ease;
+}
+
+.spell-return:hover,
+.spell-return:focus-visible {
+  color: var(--text-primary);
+}
+
+.spell-card__hint {
+  margin: 1.2rem 0 0;
+  font-family: var(--font-display);
+  font-size: 0.5rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  opacity: 0;
+  animation: card-part-in 0.5s var(--ease-out) forwards;
+  animation-delay: 0.75s;
+}
+
+/* ---------- archival source layer ---------- */
+
+.spell-source {
+  margin-top: 1.5rem;
+  opacity: 0;
+  animation: card-part-in 0.5s var(--ease-out) forwards;
+  animation-delay: 0.62s;
+}
+
+.spell-source__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42em;
+  padding: 0.3rem 0.2rem;
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: 0.58rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  transition: color 0.25s ease, text-shadow 0.25s ease;
+}
+
+.spell-source__toggle:hover,
+.spell-source__toggle:focus-visible {
+  color: color-mix(in srgb, var(--active-color) 60%, var(--text-primary));
+  text-shadow: 0 0 14px var(--active-glow);
+}
+
+.spell-source__bracket {
+  color: var(--active-color);
+  opacity: 0.75;
+}
+
+.spell-source__panel {
+  overflow: hidden;
+  margin-top: 0.9rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid color-mix(in srgb, var(--active-color) 25%, transparent);
+  text-align: left;
+  animation: source-unfurl 0.45s var(--ease-out);
+}
+
+@keyframes source-unfurl {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+.spell-source__grid {
+  margin: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.spell-source__row {
+  display: grid;
+  grid-template-columns: 8.2em 1fr;
+  gap: 0.6rem;
+  align-items: baseline;
+}
+
+.spell-source__row dt {
+  font-family: var(--font-display);
+  font-size: 0.5rem;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--active-color) 45%, var(--text-muted));
+  padding-top: 0.15em;
+}
+
+.spell-source__row dd {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--text-primary);
+}
+
+.spell-source__sub {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.spell-source__notes {
+  margin: 0.95rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.spell-source__notes--framework {
+  padding-left: 0.7rem;
+  border-left: 1px solid color-mix(in srgb, var(--active-color) 30%, transparent);
+  font-style: italic;
+}
+
+.spell-source__disclaimer {
+  margin: 0.95rem 0 0;
+  font-family: var(--font-display);
+  font-size: 0.5rem;
+  letter-spacing: 0.11em;
+  line-height: 1.7;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+@keyframes card-part-in {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spell-card__title,
+  .spell-card__tagline,
+  .spell-card__classification,
+  .spell-card__rule,
+  .spell-line,
+  .spell-source,
+  .spell-card__eyebrow,
+  .spell-brief,
+  .spell-card__hint {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .spell-display__card.is-spell.is-materializing {
+    animation: none;
+  }
+
+  /* the stage keeps its layout and its quieter reading scale, minus the motion */
+  .manifest-orb,
+  .manifest-ring,
+  .manifest-glyph {
+    animation: none;
+  }
+
+  .spell-source__panel {
+    animation: none;
+  }
+
+  .spell-display__card.is-materializing::before {
+    animation: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .spell-display__card {
+    padding: 1.7rem 1.3rem 1.5rem;
+  }
+
+  /* Reclaim vertical budget so the invocation clears the fold on phones */
+  .spell-card__title--spell {
+    font-size: 1.12rem;
+    line-height: 1.25;
+  }
+
+  .spell-card__classification {
+    margin-top: 0.6rem;
+  }
+
+  .spell-card__rule {
+    margin: 0.6rem auto 0.7rem;
+  }
+
+  .spell-incantation {
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  /* label above value — the two-column grid gets too cramped to read here */
+  .spell-source__row {
+    grid-template-columns: 1fr;
+    gap: 0.15rem;
+  }
+
+  .spell-source__grid {
+    gap: 0.75rem;
+  }
+
+  /* Keep the two controls on ONE row at narrow widths. If they wrap, the
+     lower one lands under the bottom element button and stops being tappable. */
+  .spell-source {
+    gap: 0.4rem 0.75rem;
+  }
+
+  .spell-source__toggle,
+  .spell-return {
+    font-size: 0.5rem;
+    letter-spacing: 0.12em;
+    white-space: nowrap;
+  }
+}
+
