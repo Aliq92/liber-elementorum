@@ -22,6 +22,8 @@ export class ArcaneInterface {
     this.particles = new ParticleLayer(this.canvas);
     this.display = new SpellDisplay(root.querySelector("#spell-display"), {
       onReturnToArchive: () => this.returnToArchive(),
+      onReadingStart: () => this._enterReading(),
+      onReadingEnd: () => this._exitReading(),
     });
 
     this.backdrop = root.querySelector("#spell-backdrop");
@@ -44,7 +46,6 @@ export class ArcaneInterface {
     });
 
     this.activeId = null;
-    this.lastSpellByElement = {};
     this._castTimer = null;
     this._bindGlobal();
     this._bindNative();
@@ -101,13 +102,16 @@ export class ArcaneInterface {
   }
 
   endCharge() {
+    // bailOut() (backgrounding, blur) also routes through here even when
+    // nothing was actually charging — e.g. mid-reading, with focus mode
+    // legitimately held true by _enterReading(). Only relax it here when a
+    // real charge is what's being ended, so an unrelated bailOut can't
+    // wake the ambient particles back up while the reading view stays dim.
+    const wasCharging = this.root.classList.contains("is-charging");
     this.root.classList.remove("is-charging");
     this.root.style.setProperty("--charge", "0");
     if (!this.activeId) this.particles.setActiveElement(null);
-    // A completed hold flows straight into invoke() without going through
-    // here, so reaching this point always means the hold was cancelled or
-    // released as a tap — ambient rendering can relax immediately.
-    this.particles.setFocusMode(false);
+    if (wasCharging) this.particles.setFocusMode(false);
   }
 
   /** point the inbound cast beam at the button that was held */
@@ -143,9 +147,8 @@ export class ArcaneInterface {
     const element = this._element(id);
     if (!element) return;
 
-    const spell = pickSpell(id, this.lastSpellByElement[id]);
+    const spell = pickSpell(id);
     if (!spell) return;
-    this.lastSpellByElement[id] = spell.id;
 
     this.root.classList.remove("is-charging");
     this.root.style.setProperty("--charge", "1");
@@ -163,7 +166,9 @@ export class ArcaneInterface {
     this._castTimer = window.setTimeout(() => {
       this.root.classList.remove("is-casting");
       this.root.style.setProperty("--charge", "0");
-      this.particles.setFocusMode(false);
+      // particle focus stays quiet: the card is about to settle into its
+      // reading phase (see SpellDisplay._runCastingPhase / _enterReading),
+      // which wants ambient rendering just as calm as the cast flourish did
     }, CAST_FLOURISH_MS);
 
     this.display.showSpell(spell, element, position);
@@ -188,6 +193,20 @@ export class ArcaneInterface {
     this.root.style.setProperty("--charge", "0");
     this.particles.setActiveElement(null);
     this.activeId = null;
+  }
+
+  /* ---------------- reading space ---------------- */
+
+  /** The dedicated calm state once an invoked record settles — see SpellDisplay. */
+  _enterReading() {
+    this.root.classList.add("is-reading");
+    this.particles.setReadingMode(true);
+  }
+
+  _exitReading() {
+    this.root.classList.remove("is-reading");
+    this.particles.setReadingMode(false);
+    this.particles.setFocusMode(false);
   }
 
   /* ---------------- global ---------------- */

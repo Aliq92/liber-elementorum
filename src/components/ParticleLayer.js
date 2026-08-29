@@ -303,6 +303,8 @@ export class ParticleLayer {
     // budget goes to the interaction the user is actively driving — see
     // setFocusMode(), called from ArcaneInterface on beginCharge/invoke.
     this.focused = false;
+    // Reading space is quieter still — see setReadingMode().
+    this.reading = false;
     this._lastAmbient = 0;
     this._lastCharge = 0;
 
@@ -358,6 +360,13 @@ export class ParticleLayer {
    * throttles the continuous background drift. */
   setFocusMode(active) {
     this.focused = active;
+  }
+
+  /** Deeper, near-zero ambient tier for the dedicated reading space — quieter
+   * than casting focus mode, since there is now text on screen to actually
+   * read rather than a brief flourish to watch. */
+  setReadingMode(active) {
+    this.reading = active;
   }
 
   /** Stop the render loop, drop listeners and release every particle. */
@@ -433,10 +442,11 @@ export class ParticleLayer {
     ctx.clearRect(0, 0, this.width, this.height);
 
     // While charging/casting, ambient drift emits far less often — rendering
-    // budget belongs to the interaction, not the background. Bursts and
-    // charge-converging particles (the active feedback itself) are untouched.
-    const ambientInterval = this.focused ? 900 : 220;
-    const ambientCeiling = Math.round(this.maxParticles * 0.7);
+    // budget belongs to the interaction, not the background. Reading is
+    // quieter still (near-zero, not just reduced). Bursts and charge-
+    // converging particles (the active feedback itself) are untouched.
+    const ambientInterval = this.reading ? 3200 : this.focused ? 900 : 220;
+    const ambientCeiling = this.reading ? Math.min(12, this.maxParticles) : Math.round(this.maxParticles * 0.7);
     if (!this.reducedMotion && t - this._lastAmbient > ambientInterval && this.particles.length < ambientCeiling) {
       this._lastAmbient = t;
       this.particles.push(makeAmbient(this.width, this.height, this.activeColor));

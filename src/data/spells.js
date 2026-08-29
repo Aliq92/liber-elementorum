@@ -1,44 +1,44 @@
 /**
- * Elemental archive + spell records.
+ * Elemental archive + protective invocation records.
  *
- * SOURCING POLICY
- * ---------------
- * Two categories only, and they are labelled honestly in the UI:
+ * CONTENT POLICY
+ * --------------
+ * The long-press archive (`SPELLBOOK` below) holds authentic Islamic du'a,
+ * adhkar, Qur'anic protection verses and prophetic ruqyah — never fantasy
+ * "spells". Every record's Arabic, transliteration, meaning, and source
+ * citation was checked against sunnah.com/quran.com before being included.
+ * Where a hadith's authenticity grading could not be confirmed, the record
+ * was left out rather than guessed at. Nothing here is paraphrased and
+ * presented as if it were the primary text — see each record's `notes` for
+ * what is commentary versus the recitation itself.
  *
- *   status: "verified"   The quoted text is short, extremely widely
- *                        reproduced, and given here as it is standardly
- *                        printed. Manuscript/edition is named.
- *   status: "paraphrase"  Our own descriptive summary of a practice that is
- *                        genuinely attested in the named source. NOT a
- *                        quotation, and never presented as one.
- *
- * Nothing here is invented: no fabricated Latin/Greek/Old English, no made-up
- * grimoires, shelfmarks, authors, dates, or translations. Where a reading is
- * disputed (SATOR, "Erce") the dispute is stated rather than smoothed over.
+ * `type` is the label actually shown on screen (Du'a / Dhikr / Qur'anic
+ * Recitation / Ruqyah) — never "spell". The interface chrome around it
+ * (INVOKE, MANIFEST RECORD, CASTING) is fictional framing for the app's own
+ * interaction model and makes no claim about the text itself.
  *
  * ON THE ELEMENTAL FILING
- * -----------------------
- * Most historical charms were not classified by element. Grouping them under
- * fire/water/earth/air is a curatorial decision made by THIS interface for
- * navigation, and every record says so in `associationNote`. We do not claim
- * the sources themselves made that association.
+ * ------------------------
+ * IGNIS / AQUA / TERRA / AERIS are a curatorial device of THIS interface —
+ * a way to browse a themed archive with four buttons — not an Islamic
+ * classification. See FRAMEWORK_NOTE, shown in every record's source panel.
  */
 
+import { nextInPool } from "../rotation.js";
+
 export const FRAMEWORK_NOTE =
-  "The four-element scheme used here is the classical one transmitted through " +
-  "Aristotle and systematised for magical purposes in Renaissance works such as " +
-  "Agrippa's. The Ars Paulina of the Lemegeton is often associated with this " +
-  "framework, but its own divisions are by the twenty-four hours and by the " +
-  "degrees of the zodiac; the elemental connection runs indirectly, through the " +
-  "grouping of the zodiac signs into triplicities.";
+  "The four-element scheme used here (Ignis / Aqua / Terra / Aeris) is the " +
+  "classical one transmitted through Aristotle and systematised for magical " +
+  "purposes in Renaissance works such as Agrippa's; it governs only the " +
+  "elemental archive descriptions below. The protective recitations filed " +
+  "under each element are grouped by theme (strength, healing, refuge, " +
+  "protection) as a navigation choice made by this interface. This filing " +
+  "is not a claim that Islam associates these four elements with specific " +
+  "prayers, powers, or correspondences.";
 
 export const DISCLAIMER =
-  "Presented as historical record. No claim is made that these operations have any effect.";
-
-export const STATUS_LABEL = {
-  verified: "Verified historical text",
-  paraphrase: "Historical paraphrase",
-};
+  "Religious texts are presented for reflection and historical/devotional context. " +
+  "The interface does not claim supernatural guarantees.";
 
 const CLASSIFICATION = "Paraphrased from historical source";
 
@@ -59,7 +59,9 @@ const TETRABIBLOS = {
 };
 
 /* ------------------------------------------------------------------ *
- * ELEMENTS — shown on SHORT PRESS (the informational / archive mode)
+ * ELEMENTS — shown on SHORT PRESS (the informational / archive mode).
+ * Unrelated to the protective-recitation content below: this is general
+ * Western classical-element history, not Islamic material.
  * ------------------------------------------------------------------ */
 
 export const ELEMENTS = [
@@ -154,374 +156,474 @@ export const ELEMENTS = [
 ];
 
 /* ------------------------------------------------------------------ *
- * SPELLBOOK — shown on LONG PRESS (the manifestation mode)
- * 3 records per element, 12 total.
+ * SPELLBOOK — shown on LONG PRESS (the manifestation / reading mode).
+ * Authentic du'a, adhkar, Qur'anic protection verses and ruqyah, filed by
+ * theme: Ignis (strength/steadfastness), Aqua (healing/relief), Terra
+ * (grounding/refuge), Aeris (protection/clarity). Pool sizes vary — quality
+ * over an arbitrary target count. See CONTENT POLICY above.
  * ------------------------------------------------------------------ */
-
-const PGM = {
-  source: "Papyri Graecae Magicae (Greek Magical Papyri)",
-  tradition: "Graeco-Egyptian ritual practice",
-  period: "Texts range c. 2nd century BC – 5th century AD",
-  language: "Koine Greek, with Egyptian and Semitic elements",
-  edition: "Collected by K. Preisendanz (1928–31); English edn. ed. H. D. Betz (1986)",
-};
 
 export const SPELLBOOK = {
   ignis: [
     {
-      id: "ig-abracadabra",
-      title: "The Diminishing Word",
-      classification: "Historical charm",
-      status: "verified",
-      form: "grid",
-      invocation: [
-        "ABRACADABRA",
-        "ABRACADABR",
-        "ABRACADAB",
-        "ABRACADA",
-        "ABRACAD",
-        "ABRACA",
-        "ABRAC",
-        "ABRA",
-        "ABR",
-        "AB",
-        "A",
-      ],
-      invocationLang: "Latin text; the word itself is of uncertain origin",
-      translation: null,
-      source: "Liber Medicinalis (De medicina praecepta)",
-      author: "Quintus Serenus Sammonicus",
-      tradition: "Roman medical–magical writing",
-      period: "Early 3rd century AD",
-      language: "Latin",
-      historicalNote:
-        "The work instructs that the word be written out repeatedly, losing a " +
-        "letter each line so that it tapers to a point, and worn as an amulet " +
-        "against fever. The diminishing shape is the operative part: the illness " +
-        "is meant to dwindle as the word does. The origin and meaning of the word " +
-        "are not known.",
-      associationNote:
-        "Filed under Fire by this archive because it treats fever — bodily heat. " +
-        "The source does not classify it by element.",
+      id: "ig-hasbunallah",
+      title: "Hasbunallahu wa ni'mal Wakil",
+      category: "steadfastness",
+      type: "Qur'anic Recitation",
+      arabic: "حَسْبُنَا اللَّهُ وَنِعْمَ الْوَكِيلُ",
+      transliteration: "Hasbunallahu wa ni'mal Wakil",
+      meaning: "Allah is sufficient for us, and He is the best Disposer of affairs.",
+      source: "The Qur'an",
+      reference: "Surah Aal 'Imran 3:173",
+      sourceType: "Qur'an",
+      authenticity: "Qur'anic Text",
+      purpose: "Courage, steadfastness",
+      recommendedContext: "When facing overwhelming fear or opposition",
+      repetition: null,
+      notes:
+        "Said by the believers on being told a great force had gathered against " +
+        "them — and it increased their faith rather than their fear (3:173).",
     },
     {
-      id: "ig-lychnomancy",
-      title: "Divination by Lamp",
-      classification: "Paraphrased from historical source",
-      status: "paraphrase",
-      form: "lines",
-      invocation: [
-        "A lamp of undyed clay is lit in a darkened room.",
-        "The practitioner sits facing the flame, speaks the formula,",
-        "and watches the fire for the figure that answers.",
-      ],
-      invocationLang: null,
-      translation: null,
-      source: PGM.source,
-      author: null,
-      tradition: PGM.tradition,
-      period: PGM.period,
-      language: PGM.language,
-      edition: PGM.edition,
-      historicalNote:
-        "Lamp divination (lychnomancy) appears repeatedly in the magical papyri. " +
-        "The procedures typically specify the lamp, the oil, the darkened room and " +
-        "a spoken formula, then direct the operator to watch the flame for a vision " +
-        "or an answering figure. The wording above is our summary of that pattern, " +
-        "not a translation of any single papyrus.",
-      associationNote:
-        "Filed under Fire by this archive: the flame is the instrument of the rite.",
+      id: "ig-rabbana-afrigh",
+      title: "Rabbana Afrigh 'Alayna Sabran",
+      category: "steadfastness",
+      type: "Qur'anic Recitation",
+      arabic:
+        "رَبَّنَا أَفْرِغْ عَلَيْنَا صَبْرًا وَثَبِّتْ أَقْدَامَنَا وَانصُرْنَا عَلَى الْقَوْمِ الْكَافِرِينَ",
+      transliteration:
+        "Rabbana afrigh 'alayna sabran wa thabbit aqdamana wansurna 'alal-qawmil-kafirin",
+      meaning:
+        "Our Lord, pour upon us patience, make firm our feet, and give us victory over the disbelieving people.",
+      source: "The Qur'an",
+      reference: "Surah Al-Baqarah 2:250",
+      sourceType: "Qur'an",
+      authenticity: "Qur'anic Text",
+      purpose: "Steadfastness under pressure",
+      recommendedContext: "Before or during a daunting confrontation or trial",
+      repetition: null,
+      notes:
+        "The supplication of Talut's (Saul's) small army as they advanced on a much larger force led by Jalut (Goliath).",
     },
     {
-      id: "ig-needfire",
-      title: "The Need-Fire",
-      classification: "Paraphrased from historical source",
-      status: "paraphrase",
-      form: "lines",
-      invocation: [
-        "Every hearth in the settlement is put out.",
-        "New fire is drawn by friction, from wood alone,",
-        "and the cattle are driven through its smoke.",
-      ],
-      invocationLang: null,
-      translation: null,
-      source: "Deutsche Mythologie",
-      author: "Jacob Grimm",
-      tradition: "Northern European folk practice, as recorded by 19th-c. folklorists",
-      period: "Practice attested from the medieval period; Grimm's collection 1835",
-      language: "Recorded in German; practices variously Germanic and Celtic",
-      historicalNote:
-        "The need-fire (German Notfeuer) was kindled by friction after all existing " +
-        "household fires had been extinguished, and livestock were driven through " +
-        "the smoke as a protection against murrain. Accounts survive from several " +
-        "regions of northern Europe and were gathered by 19th-century folklorists. " +
-        "Details vary considerably between accounts.",
-      associationNote: "Filed under Fire by this archive: fire is the substance of the rite.",
+      id: "ig-usri-yusra",
+      title: "Fa-inna Ma'al-'Usri Yusra",
+      category: "resilience",
+      type: "Qur'anic Recitation",
+      arabic: "فَإِنَّ مَعَ الْعُسْرِ يُسْرًا، إِنَّ مَعَ الْعُسْرِ يُسْرًا",
+      transliteration: "Fa-inna ma'al-'usri yusra, inna ma'al-'usri yusra",
+      meaning: "So indeed, with hardship comes ease. Indeed, with hardship comes ease.",
+      source: "The Qur'an",
+      reference: "Surah Ash-Sharh 94:5-6",
+      sourceType: "Qur'an",
+      authenticity: "Qur'anic Text",
+      purpose: "Resilience, hope under hardship",
+      recommendedContext: "During prolonged difficulty",
+      repetition: null,
+      notes: "The promise is stated twice in immediate succession in the surah.",
+    },
+    {
+      id: "ig-la-hawla",
+      title: "La Hawla wa la Quwwata illa Billah",
+      category: "reliance",
+      type: "Dhikr",
+      arabic: "لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ",
+      transliteration: "La hawla wa la quwwata illa billah",
+      meaning: "There is no power and no strength except with Allah.",
+      source: "Sahih al-Bukhari; Sahih Muslim",
+      reference: "Bukhari 6384; Muslim 2704",
+      sourceType: "Hadith",
+      authenticity: "Sahih",
+      purpose: "Reliance on Allah, inner strength",
+      recommendedContext: "General use, especially when feeling powerless",
+      repetition: null,
+      notes:
+        "The Prophet ﷺ told Abu Musa al-Ash'ari he would teach him a sentence " +
+        "from the treasures of Paradise, then taught him this phrase.",
+    },
+    {
+      id: "ig-la-sahla",
+      title: "Allahumma la Sahla illa ma Ja'altahu Sahla",
+      category: "steadfastness",
+      type: "Du'a",
+      arabic:
+        "اللَّهُمَّ لَا سَهْلَ إِلَّا مَا جَعَلْتَهُ سَهْلًا، وَأَنْتَ تَجْعَلُ الْحَزْنَ إِذَا شِئْتَ سَهْلًا",
+      transliteration:
+        "Allahumma la sahla illa ma ja'altahu sahla, wa anta taj'alul-hazna idha shi'ta sahla",
+      meaning:
+        "O Allah, nothing is easy except what You make easy, and You make the difficult, if You wish, easy.",
+      source: "Ibn Hibban; also recorded by Ibn as-Sunni",
+      reference: "Ibn Hibban 2427",
+      sourceType: "Hadith",
+      authenticity: "Sahih (graded by al-Albani and Ibn Hajar)",
+      purpose: "Courage to begin a hard task",
+      recommendedContext: "Facing a difficult undertaking",
+      repetition: null,
+      notes: "Narrated by Anas ibn Malik.",
     },
   ],
 
   aqua: [
     {
-      id: "aq-lecanomancy",
-      title: "Divination by Bowl",
-      classification: "Paraphrased from historical source",
-      status: "paraphrase",
-      form: "lines",
-      invocation: [
-        "A vessel is filled with water, and oil poured upon it.",
-        "The formula is spoken over the surface.",
-        "The answer is read in what moves there.",
-      ],
-      invocationLang: null,
-      translation: null,
-      source: PGM.source,
-      author: null,
-      tradition: PGM.tradition,
-      period: PGM.period,
-      language: PGM.language,
-      edition: PGM.edition,
-      historicalNote:
-        "Bowl divination (lecanomancy) is described in several of the magical " +
-        "papyri: a vessel of water, often with oil floated on it, is used as a " +
-        "scrying surface after a spoken formula. The practice is considerably older " +
-        "than the papyri and is attested in Mesopotamian sources as well. The lines " +
-        "above summarise the procedure; they are not a quotation.",
-      associationNote: "Filed under Water by this archive: water is the scrying medium.",
+      id: "aq-dua-yunus",
+      title: "Du'a of Yunus",
+      category: "distress relief",
+      type: "Qur'anic Recitation",
+      arabic: "لَا إِلَٰهَ إِلَّا أَنْتَ سُبْحَانَكَ إِنِّي كُنْتُ مِنَ الظَّالِمِينَ",
+      transliteration: "La ilaha illa anta subhanaka inni kuntu minaz-zalimin",
+      meaning: "There is no deity except You; exalted are You. Indeed, I have been of the wrongdoers.",
+      source: "The Qur'an",
+      reference: "Surah Al-Anbiya 21:87",
+      sourceType: "Qur'an",
+      authenticity: "Qur'anic Text",
+      purpose: "Relief from distress",
+      recommendedContext: "In hardship or entrapment",
+      repetition: null,
+      notes:
+        "Called upon by Prophet Yunus (Jonah) from within the whale. Jami' " +
+        "at-Tirmidhi 3505 records that no believer supplicates with it in any " +
+        "matter except that Allah answers him — graded Sahih by al-Hakim, " +
+        "concurred by al-Dhahabi.",
     },
     {
-      id: "aq-jordan",
-      title: "The Staunching of the River",
-      classification: "Paraphrased from historical source",
-      status: "paraphrase",
-      form: "lines",
-      invocation: [
-        "As the river Jordan is said to have stood still",
-        "when Christ was baptised in it,",
-        "so let this blood stand still.",
-      ],
-      invocationLang: null,
-      translation: null,
-      source: "European blood-staunching charm tradition ('Flum Jordan' type)",
-      author: null,
-      tradition: "Medieval and early modern Christian folk charm",
-      period: "Attested from the medieval period into the 19th century",
-      language: "Recorded in German, English, Scandinavian and other vernaculars",
-      historicalNote:
-        "A widespread charm type built on a comparison: the Jordan halted at the " +
-        "baptism of Christ, therefore the bleeding should halt likewise. Charm " +
-        "scholarship treats it as a recognised family with many regional variants " +
-        "rather than a single fixed text, which is why it is given here as a " +
-        "paraphrase of the pattern rather than as a quotation.",
-      associationNote:
-        "Filed under Water by this archive: the charm's power turns on the stopping " +
-        "of a river.",
+      id: "aq-hamm-hazan",
+      title: "Refuge from Anxiety and Sorrow",
+      category: "relief",
+      type: "Du'a",
+      arabic:
+        "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنَ الْهَمِّ وَالْحَزَنِ، وَالْعَجْزِ وَالْكَسَلِ، وَالْجُبْنِ وَالْبُخْلِ، وَضَلَعِ الدَّيْنِ وَغَلَبَةِ الرِّجَالِ",
+      transliteration:
+        "Allahumma inni a'udhu bika minal-hammi wal-hazan, wal-'ajzi wal-kasal, " +
+        "wal-jubni wal-bukhl, wa dala'id-dayni wa ghalabatir-rijal",
+      meaning:
+        "O Allah, I seek refuge in You from anxiety and sorrow, weakness and " +
+        "laziness, cowardice and miserliness, the burden of debts and being " +
+        "overpowered by other men.",
+      source: "Sahih al-Bukhari",
+      reference: "Bukhari 6369",
+      sourceType: "Hadith",
+      authenticity: "Sahih",
+      purpose: "Relief from anxiety and grief",
+      recommendedContext: "Morning and evening, or whenever burdened",
+      repetition: null,
+      notes: "Narrated by Anas ibn Malik, who said the Prophet ﷺ used to say this often.",
     },
     {
-      id: "aq-aquaesulis",
-      title: "What Was Given to the Spring",
-      classification: "Paraphrased from historical source",
-      status: "paraphrase",
-      form: "lines",
-      invocation: [
-        "The petition is written on a sheet of lead,",
-        "the wrong done is named, and the thief with it,",
-        "and the tablet is committed to the hot spring.",
-      ],
-      invocationLang: null,
-      translation: null,
-      source: "Curse tablets from the sacred spring at Aquae Sulis (Bath)",
-      author: null,
-      tradition: "Romano-British religious practice",
-      period: "Roughly 2nd–4th century AD",
-      language: "Latin, in everyday hands",
-      historicalNote:
-        "Well over a hundred inscribed lead tablets were recovered from the spring " +
-        "at Bath. Many concern petty theft: the writer describes the loss, sometimes " +
-        "lists suspects, and hands the matter to the goddess Sulis Minerva, asking " +
-        "that the thief be given no rest until restitution is made. The lines above " +
-        "describe the practice; individual tablets vary widely in wording.",
-      associationNote:
-        "Filed under Water by this archive: the spring itself receives the petition.",
+      id: "aq-ruqyah-pain",
+      title: "Ruqyah for Pain",
+      category: "healing",
+      type: "Ruqyah",
+      arabic:
+        "بِسْمِ اللَّهِ (×٣) أَعُوذُ بِاللَّهِ وَقُدْرَتِهِ مِنْ شَرِّ مَا أَجِدُ وَأُحَاذِرُ (×٧)",
+      transliteration:
+        "Bismillah (three times); a'udhu billahi wa qudratihi min sharri ma ajidu wa uhadhir (seven times)",
+      meaning:
+        "In the name of Allah (three times). I seek refuge in Allah and in His " +
+        "power from the evil of what I feel and what I am wary of (seven times).",
+      source: "Sahih Muslim",
+      reference: "Muslim 2202",
+      sourceType: "Hadith",
+      authenticity: "Sahih",
+      purpose: "Relief from bodily pain",
+      recommendedContext: "Place the hand on the site of the pain while reciting",
+      repetition: "Bismillah 3×; the refuge formula 7×",
+      notes:
+        "Taught by the Prophet ﷺ to Uthman ibn Abi al-'As, who had complained " +
+        "of pain he had felt since becoming Muslim.",
+    },
+    {
+      id: "aq-ruqyah-jibril",
+      title: "Ruqyah of Jibril",
+      category: "healing",
+      type: "Ruqyah",
+      arabic:
+        "بِسْمِ اللَّهِ أَرْقِيكَ، مِنْ كُلِّ شَيْءٍ يُؤْذِيكَ، مِنْ شَرِّ كُلِّ نَفْسٍ أَوْ عَيْنِ حَاسِدٍ، اللَّهُ يَشْفِيكَ، بِسْمِ اللَّهِ أَرْقِيكَ",
+      transliteration:
+        "Bismillahi arqik, min kulli shay'in yu'dhik, min sharri kulli nafsin aw " +
+        "'ayni hasid, Allahu yashfik, bismillahi arqik",
+      meaning:
+        "In the name of Allah I recite over you, from everything that harms you, " +
+        "from the evil of every soul or envious eye — may Allah heal you. In " +
+        "the name of Allah I recite over you.",
+      source: "Sahih Muslim",
+      reference: "Muslim 2186",
+      sourceType: "Hadith",
+      authenticity: "Sahih",
+      purpose: "Healing; protection from envy",
+      recommendedContext: "Recited over someone who is unwell",
+      repetition: null,
+      notes:
+        "The angel Jibril (Gabriel) recited this over the Prophet ﷺ when he was " +
+        "unwell, as narrated by Abu Sa'id al-Khudri.",
+    },
+    {
+      id: "aq-ruqyah-rabban-nas",
+      title: "Ruqyah for the Sick",
+      category: "healing",
+      type: "Ruqyah",
+      arabic:
+        "اللَّهُمَّ رَبَّ النَّاسِ أَذْهِبِ الْبَأْسَ اشْفِ أَنْتَ الشَّافِي لَا شِفَاءَ إِلَّا شِفَاؤُكَ شِفَاءً لَا يُغَادِرُ سَقَمًا",
+      transliteration:
+        "Allahumma Rabban-nas, adhhibil-ba's, ishfi anta ash-Shafi, la shifa'a " +
+        "illa shifa'uk, shifa'an la yughadiru saqama",
+      meaning:
+        "O Allah, Lord of mankind, remove the affliction. Heal — You are the " +
+        "Healer; there is no healing but Your healing, a healing that leaves no illness.",
+      source: "Sahih al-Bukhari; Sahih Muslim",
+      reference: "Bukhari 5743; Muslim 2191",
+      sourceType: "Hadith",
+      authenticity: "Sahih",
+      purpose: "Healing from illness",
+      recommendedContext: "Recited while visiting or touching the sick",
+      repetition: null,
+      notes: "Narrated by Aisha, describing what the Prophet ﷺ would say when visiting the unwell.",
+    },
+    {
+      id: "aq-fatiha-ruqyah",
+      title: "Ruqyah by Surah Al-Fatiha",
+      category: "healing",
+      type: "Qur'anic Recitation",
+      arabic:
+        "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ الرَّحْمَٰنِ " +
+        "الرَّحِيمِ مَالِكِ يَوْمِ الدِّينِ إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ اهْدِنَا الصِّرَاطَ " +
+        "الْمُسْتَقِيمَ صِرَاطَ الَّذِينَ أَنْعَمْتَ عَلَيْهِمْ غَيْرِ الْمَغْضُوبِ عَلَيْهِمْ وَلَا الضَّالِّينَ",
+      transliteration:
+        "Bismillahir-Rahmanir-Rahim. Alhamdu lillahi Rabbil-'alamin. " +
+        "Ar-Rahmanir-Rahim. Maliki yawmid-din. Iyyaka na'budu wa iyyaka nasta'in. " +
+        "Ihdinas-siratal-mustaqim. Siratal-ladhina an'amta 'alayhim ghayril-maghdubi 'alayhim wa lad-dallin.",
+      meaning:
+        "In the name of Allah, the Most Gracious, the Most Merciful. All praise " +
+        "is for Allah, Lord of all worlds. The Most Gracious, the Most Merciful. " +
+        "Master of the Day of Judgment. You alone we worship, and You alone we " +
+        "ask for help. Guide us to the straight path — the path of those You " +
+        "have blessed, not of those who have earned Your anger, nor of those who are astray.",
+      source: "The Qur'an; incident recorded in Sahih al-Bukhari",
+      reference: "Surah Al-Fatiha 1:1-7; Bukhari 5736",
+      sourceType: "Qur'an / Hadith",
+      authenticity: "Qur'anic Text; incident Sahih",
+      purpose: "Healing",
+      recommendedContext: "Recited as ruqyah over someone injured or ill",
+      repetition: null,
+      notes:
+        "A companion recited Al-Fatiha over a tribal chief stung by a scorpion; " +
+        "on hearing of it the Prophet ﷺ smiled and asked, 'How did you know that " +
+        "it is a ruqyah?', confirming the practice.",
     },
   ],
 
   terra: [
     {
-      id: "te-aecerbot",
-      title: "Remedy for Fields",
-      classification: "Historical invocation",
-      status: "verified",
-      form: "lines",
-      invocation: ["Erce, Erce, Erce, eorþan modor", "Hal wes þu, folde, fira modor"],
-      invocationLang: "Old English",
-      translation: [
-        "Erce, Erce, Erce, mother of earth",
-        "Hale be thou, Earth, mother of men",
-      ],
-      source: "The Æcerbot (Field Remedy), British Library, Cotton MS Caligula A. vii",
-      author: null,
-      tradition: "Anglo-Saxon charm, Christian and pre-Christian elements combined",
-      period: "Manuscript 11th century",
-      language: "Old English",
-      historicalNote:
-        "A long ritual for land that will not yield, combining Christian liturgy " +
-        "with older material: turves are cut and blessed, seed and oil are used, and " +
-        "these addresses to the earth are spoken. The meaning of 'Erce' is not " +
-        "settled — it has been read as a proper name, as a title, and as something " +
-        "else entirely; no reading commands agreement.",
-      associationNote:
-        "Filed under Earth by this archive, and here the source agrees: the address " +
-        "is to the earth itself.",
+      id: "te-ayat-kursi",
+      title: "Ayat al-Kursi",
+      category: "protection",
+      type: "Qur'anic Recitation",
+      arabic:
+        "اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ ۚ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ ۚ لَهُ مَا فِي " +
+        "السَّمَاوَاتِ وَمَا فِي الْأَرْضِ ۗ مَنْ ذَا الَّذِي يَشْفَعُ عِنْدَهُ إِلَّا بِإِذْنِهِ ۚ يَعْلَمُ مَا بَيْنَ " +
+        "أَيْدِيهِمْ وَمَا خَلْفَهُمْ ۖ وَلَا يُحِيطُونَ بِشَيْءٍ مِنْ عِلْمِهِ إِلَّا بِمَا شَاءَ ۚ وَسِعَ كُرْسِيُّهُ " +
+        "السَّمَاوَاتِ وَالْأَرْضَ ۖ وَلَا يَئُودُهُ حِفْظُهُمَا ۚ وَهُوَ الْعَلِيُّ الْعَظِيمُ",
+      transliteration:
+        "Allahu la ilaha illa huwal-Hayyul-Qayyum, la ta'khudhuhu sinatun wa la " +
+        "nawm, lahu ma fis-samawati wa ma fil-ard, man dhal-ladhi yashfa'u " +
+        "'indahu illa bi-idhnih, ya'lamu ma bayna aydihim wa ma khalfahum, wa la " +
+        "yuhituna bi-shay'in min 'ilmihi illa bima sha'a, wasi'a kursiyyuhus-" +
+        "samawati wal-ard, wa la ya'uduhu hifzuhuma, wa huwal-'Aliyyul-'Azim",
+      meaning:
+        "Allah — there is no deity except Him, the Ever-Living, the Sustainer " +
+        "of existence. Neither drowsiness overtakes Him nor sleep. To Him " +
+        "belongs whatever is in the heavens and whatever is on the earth. Who " +
+        "is it that can intercede with Him except by His permission? He knows " +
+        "what is before them and what will be after them, and they encompass " +
+        "nothing of His knowledge except what He wills. His Kursi extends over " +
+        "the heavens and the earth, and their preservation tires Him not. He is " +
+        "the Most High, the Most Great.",
+      source: "The Qur'an",
+      reference: "Surah Al-Baqarah 2:255",
+      sourceType: "Qur'an",
+      authenticity: "Qur'anic Text",
+      purpose: "Protection, especially overnight",
+      recommendedContext: "Before sleep; morning and evening",
+      repetition: null,
+      notes:
+        "Widely regarded as the greatest verse of the Qur'an. Sahih al-Bukhari " +
+        "3275 records that reciting it before sleep keeps a guardian from Allah " +
+        "near until morning and wards off a devil.",
     },
     {
-      id: "te-sator",
-      title: "The Sator Square",
-      classification: "Historical inscription",
-      status: "verified",
-      form: "grid",
-      invocation: ["S A T O R", "A R E P O", "T E N E T", "O P E R A", "R O T A S"],
-      invocationLang: "Latin",
-      translation: null,
-      source: "Wall inscriptions at Pompeii; later widely copied across Europe",
-      author: null,
-      tradition: "Roman, later absorbed into medieval Christian charm use",
-      period: "Attested before AD 79; in continuous use for many centuries after",
-      language: "Latin",
-      historicalNote:
-        "A word square reading the same across, down, and both reversed. Examples " +
-        "were found at Pompeii, giving a firm date before the eruption of AD 79. " +
-        "Later it was used across Europe as a protective charm, against fire and " +
-        "illness among other things. Its meaning is genuinely disputed: AREPO is " +
-        "otherwise unattested, and no proposed translation is accepted as settled.",
-      associationNote:
-        "Filed under Earth by this archive because 'sator' is a sower and the square's " +
-        "later use was largely agricultural and domestic. The square is not " +
-        "historically an elemental object.",
+      id: "te-la-yadurru",
+      title: "Bismillahil-ladhi la Yadurru",
+      category: "protection",
+      type: "Dhikr",
+      arabic:
+        "بِسْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ وَهُوَ السَّمِيعُ الْعَلِيمُ",
+      transliteration:
+        "Bismillahil-ladhi la yadurru ma'a ismihi shay'un fil-ardi wa la fis-sama'i wa huwas-Sami'ul-'Alim",
+      meaning:
+        "In the name of Allah, with whose name nothing on earth or in heaven " +
+        "can cause harm, and He is the All-Hearing, the All-Knowing.",
+      source: "Jami' at-Tirmidhi; Sunan Ibn Majah",
+      reference: "Tirmidhi 3388; Ibn Majah 3869",
+      sourceType: "Hadith",
+      authenticity: "Sahih",
+      purpose: "Protection from harm",
+      recommendedContext: "Morning and evening",
+      repetition: "Three times",
+      notes:
+        "Narrated by Uthman ibn Affan: whoever recites this three times each " +
+        "morning and evening will not be harmed by anything until the next.",
     },
     {
-      id: "te-nineherbs",
-      title: "The Nine Herbs",
-      classification: "Paraphrased from historical source",
-      status: "paraphrase",
-      form: "lines",
-      invocation: [
-        "Nine herbs are named and addressed in turn,",
-        "each told what it has power against;",
-        "they are then ground together and worked into a salve.",
-      ],
-      invocationLang: null,
-      translation: null,
-      source: "The Nine Herbs Charm, in the Lacnunga, British Library, Harley MS 585",
-      author: null,
-      tradition: "Anglo-Saxon medical–magical compilation",
-      period: "Manuscript 10th–11th century",
-      language: "Old English",
-      historicalNote:
-        "The charm addresses nine plants one after another, recounting what each is " +
-        "proficient against, before instructions for preparing them. It names Woden " +
-        "in one passage alongside Christian material. Identification of some of the " +
-        "nine herbs is uncertain. Summarised here rather than quoted.",
-      associationNote:
-        "Filed under Earth by this archive: the working is with plants and soil.",
+      id: "te-tammati-manzil",
+      title: "Refuge on Entering a Place",
+      category: "safety",
+      type: "Du'a",
+      arabic: "أَعُوذُ بِكَلِمَاتِ اللَّهِ التَّامَّاتِ مِنْ شَرِّ مَا خَلَقَ",
+      transliteration: "A'udhu bikalimatillahi at-tammati min sharri ma khalaq",
+      meaning: "I seek refuge in the perfect words of Allah from the evil of what He has created.",
+      source: "Sahih Muslim",
+      reference: "Muslim 2708a",
+      sourceType: "Hadith",
+      authenticity: "Sahih",
+      purpose: "Safety when entering or staying in a place",
+      recommendedContext: "Upon stopping or settling somewhere, including while travelling",
+      repetition: null,
+      notes:
+        "Narrated by Khawlah bint Hakim: whoever says this on stopping at a " +
+        "place will not be harmed until they depart from it.",
+    },
+    {
+      id: "te-sleep-waking",
+      title: "Sleep and Waking",
+      category: "safety",
+      type: "Du'a",
+      arabic:
+        "بِاسْمِكَ اللَّهُمَّ أَمُوتُ وَأَحْيَا. الْحَمْدُ لِلَّهِ الَّذِي أَحْيَانَا بَعْدَ مَا أَمَاتَنَا وَإِلَيْهِ النُّشُورُ",
+      transliteration:
+        "Bismika Allahumma amutu wa ahya. Alhamdu lillahil-ladhi ahyana ba'da ma amatana wa ilayhin-nushur.",
+      meaning:
+        "With Your name, O Allah, I die and I live. All praise is for Allah, " +
+        "who gave us life after having taken it from us [in sleep], and unto " +
+        "Him is the resurrection.",
+      source: "Sahih al-Bukhari",
+      reference: "Bukhari 6324",
+      sourceType: "Hadith",
+      authenticity: "Sahih",
+      purpose: "Safety and grounding through sleep",
+      recommendedContext: "Upon lying down to sleep, and upon waking",
+      repetition: null,
+      notes:
+        "The first line is said on lying down; the second on waking, per the Prophet's ﷺ nightly practice.",
     },
   ],
 
   aeris: [
     {
-      id: "ae-breath",
-      title: "Drawing Breath from the Rays",
-      classification: "Paraphrased from historical source",
-      status: "paraphrase",
-      form: "lines",
-      invocation: [
-        "Draw breath from the rays, inward, three times;",
-        "the body is said to lighten,",
-        "and the ascent begins.",
-      ],
-      invocationLang: null,
-      translation: null,
-      source: "The so-called 'Mithras Liturgy', within PGM IV",
-      author: null,
-      tradition: PGM.tradition,
-      period: PGM.period,
-      language: PGM.language,
-      edition: PGM.edition,
-      historicalNote:
-        "A section of the great Paris magical papyrus describes a rite of ascent in " +
-        "which the practitioner draws in breath from the sun's rays and is raised up. " +
-        "The name 'Mithras Liturgy' was given to it by a modern editor and its " +
-        "connection to Mithraic religion is debated. Summarised, not quoted.",
-      associationNote:
-        "Filed under Air by this archive: breath is the instrument of the rite.",
+      id: "ae-al-ikhlas",
+      title: "Surah Al-Ikhlas",
+      category: "protection",
+      type: "Qur'anic Recitation",
+      arabic: "قُلْ هُوَ اللَّهُ أَحَدٌ. اللَّهُ الصَّمَدُ. لَمْ يَلِدْ وَلَمْ يُولَدْ. وَلَمْ يَكُنْ لَهُ كُفُوًا أَحَدٌ.",
+      transliteration: "Qul huwallahu ahad. Allahus-samad. Lam yalid wa lam yulad. Wa lam yakul-lahu kufuwan ahad.",
+      meaning:
+        "Say: He is Allah, the One. Allah, the Eternal Refuge. He neither " +
+        "begets nor is born. Nor is there to Him any equivalent.",
+      source: "The Qur'an",
+      reference: "Surah Al-Ikhlas 112:1-4",
+      sourceType: "Qur'an",
+      authenticity: "Qur'anic Text",
+      purpose: "Protection; clarity of belief",
+      recommendedContext: "Morning and evening; often recited with Al-Falaq and An-Nas",
+      repetition: null,
+      notes:
+        "Traditionally recited together with Surah Al-Falaq and Surah An-Nas — " +
+        "a set sometimes called 'the three Quls' after their opening word, Qul ('Say').",
     },
     {
-      id: "ae-windknots",
-      title: "Wind Sold in Knots",
-      classification: "Paraphrased from historical source",
-      status: "paraphrase",
-      form: "lines",
-      invocation: [
-        "A cord is sold to the sailor with three knots tied in it.",
-        "Loose the first for a fair wind, the second for a strong one.",
-        "The third is not to be loosed.",
-      ],
-      invocationLang: null,
-      translation: null,
-      source: "Historia de gentibus septentrionalibus",
-      author: "Olaus Magnus",
-      tradition: "Northern European maritime folk belief",
-      period: "Printed Rome, 1555; describing beliefs of its own time and earlier",
-      language: "Latin",
-      historicalNote:
-        "Olaus Magnus reports that sailors in the far north bought wind from local " +
-        "weather-workers in the form of knotted cords, to be untied at sea as more " +
-        "wind was wanted. Similar accounts recur in later folklore collections from " +
-        "Scotland and Scandinavia. The number of knots and the warning attached to " +
-        "the last vary between tellings.",
-      associationNote: "Filed under Air by this archive: the wind is the thing traded.",
+      id: "ae-al-falaq",
+      title: "Surah Al-Falaq",
+      category: "protection",
+      type: "Qur'anic Recitation",
+      arabic:
+        "قُلْ أَعُوذُ بِرَبِّ الْفَلَقِ. مِنْ شَرِّ مَا خَلَقَ. وَمِنْ شَرِّ غَاسِقٍ إِذَا وَقَبَ. " +
+        "وَمِنْ شَرِّ النَّفَّاثَاتِ فِي الْعُقَدِ. وَمِنْ شَرِّ حَاسِدٍ إِذَا حَسَدَ.",
+      transliteration:
+        "Qul a'udhu bi-Rabbil-falaq. Min sharri ma khalaq. Wa min sharri " +
+        "ghasiqin idha waqab. Wa min sharrin-naffathati fil-'uqad. Wa min sharri hasidin idha hasad.",
+      meaning:
+        "Say: I seek refuge in the Lord of daybreak, from the evil of that " +
+        "which He created, and from the evil of darkness when it settles, and " +
+        "from the evil of the blowers in knots, and from the evil of an envier when he envies.",
+      source: "The Qur'an",
+      reference: "Surah Al-Falaq 113:1-5",
+      sourceType: "Qur'an",
+      authenticity: "Qur'anic Text",
+      purpose: "Protection from harm and envy",
+      recommendedContext: "Morning and evening",
+      repetition: null,
+      notes: "One of the two 'Mu'awwidhatan' (refuge surahs), often paired with An-Nas.",
     },
     {
-      id: "ae-augury",
-      title: "The Watching of Birds",
-      classification: "Paraphrased from historical source",
-      status: "paraphrase",
-      form: "lines",
-      invocation: [
-        "A quarter of the sky is marked out and fixed by words.",
-        "The augur waits within it, facing the appointed way,",
-        "and reads what crosses: by flight, or by cry.",
-      ],
-      invocationLang: null,
-      translation: null,
-      source: "De divinatione",
-      author: "Marcus Tullius Cicero",
-      tradition: "Roman state religion",
-      period: "Written 44 BC; the practice considerably older",
-      language: "Latin",
-      historicalNote:
-        "Roman augury involved marking out a region of the sky (a templum) by formula " +
-        "and observing birds within it — distinguishing those that signified by flight " +
-        "from those that signified by call. Cicero's dialogue is a principal source, " +
-        "though he argues against the validity of divination in it. Described here, " +
-        "not quoted.",
-      associationNote:
-        "Filed under Air by this archive: the sky is the field of observation.",
+      id: "ae-an-nas",
+      title: "Surah An-Nas",
+      category: "protection",
+      type: "Qur'anic Recitation",
+      arabic:
+        "قُلْ أَعُوذُ بِرَبِّ النَّاسِ. مَلِكِ النَّاسِ. إِلَٰهِ النَّاسِ. مِنْ شَرِّ الْوَسْوَاسِ " +
+        "الْخَنَّاسِ. الَّذِي يُوَسْوِسُ فِي صُدُورِ النَّاسِ. مِنَ الْجِنَّةِ وَالنَّاسِ.",
+      transliteration:
+        "Qul a'udhu bi-Rabbin-nas. Malikin-nas. Ilahin-nas. Min sharril-" +
+        "waswasil-khannas. Alladhi yuwaswisu fi sudurin-nas. Minal-jinnati wan-nas.",
+      meaning:
+        "Say: I seek refuge in the Lord of mankind, the King of mankind, the " +
+        "God of mankind, from the evil of the retreating whisperer, who " +
+        "whispers in the breasts of mankind, from among the jinn and mankind.",
+      source: "The Qur'an",
+      reference: "Surah An-Nas 114:1-6",
+      sourceType: "Qur'an",
+      authenticity: "Qur'anic Text",
+      purpose: "Protection from harmful whispers",
+      recommendedContext: "Morning and evening",
+      repetition: null,
+      notes: "The second of the two Mu'awwidhatan, addressing whispered harm specifically.",
+    },
+    {
+      id: "ae-hasan-husain",
+      title: "Refuge for Hasan and Husain",
+      category: "protection",
+      type: "Du'a",
+      arabic:
+        "أُعِيذُكُمَا بِكَلِمَاتِ اللَّهِ التَّامَّةِ مِنْ كُلِّ شَيْطَانٍ وَهَامَّةٍ وَمِنْ كُلِّ عَيْنٍ لَامَّةٍ",
+      transliteration:
+        "U'idhukuma bikalimatillahi at-tammati min kulli shaytanin wa hammatin wa min kulli 'aynin lammah",
+      meaning:
+        "I seek refuge for you both in the perfect words of Allah, from every " +
+        "devil and every poisonous creature, and from every harmful, envious eye.",
+      source: "Sahih al-Bukhari",
+      reference: "Bukhari 3371",
+      sourceType: "Hadith",
+      authenticity: "Sahih",
+      purpose: "Protection from envy and the evil eye",
+      recommendedContext: "Said over children or loved ones",
+      repetition: null,
+      notes:
+        "Narrated by Ibn 'Abbas: the Prophet ﷺ used this for Hasan and Husain, " +
+        "and said Ibrahim used to seek refuge for Isma'il and Ishaq with the same words.",
     },
   ],
 };
 
-/** Pick a spell for an element, avoiding an immediate repeat where possible. */
-export function pickSpell(elementId, lastSpellId) {
+/** Pick an invocation for an element via the shuffle-bag rotation (see rotation.js). */
+export function pickSpell(elementId) {
   const pool = SPELLBOOK[elementId];
   if (!pool || pool.length === 0) return null;
-  const candidates = pool.length > 1 ? pool.filter((s) => s.id !== lastSpellId) : pool;
-  return candidates[Math.floor(Math.random() * candidates.length)];
+  const id = nextInPool(elementId, pool);
+  return pool.find((s) => s.id === id) || pool[0];
 }
 
 /**
  * Boot-time integrity check. Catches the failure modes that would otherwise
- * only show up as "undefined" rendered into the card: missing metadata,
- * an element pool of the wrong size, or ids leaking across elements.
+ * only show up as "undefined" rendered into the card: missing metadata or an
+ * id leaking across elements.
  * Returns a list of problems (empty when healthy) and warns in the console.
  */
 export function validateSpellData() {
@@ -529,57 +631,49 @@ export function validateSpellData() {
   const REQUIRED = [
     "id",
     "title",
-    "classification",
-    "status",
-    "invocation",
+    "category",
+    "type",
+    "arabic",
+    "transliteration",
+    "meaning",
     "source",
-    "tradition",
-    "period",
-    "language",
-    "historicalNote",
-    "associationNote",
+    "reference",
+    "sourceType",
+    "authenticity",
+    "purpose",
   ];
   const ID_PREFIX = { ignis: "ig-", aqua: "aq-", terra: "te-", aeris: "ae-" };
   const seenIds = new Set();
 
   ELEMENTS.forEach((el) => {
-    if (!SPELLBOOK[el.id]) problems.push(`No spell pool for element "${el.id}"`);
+    if (!SPELLBOOK[el.id]) problems.push(`No invocation pool for element "${el.id}"`);
   });
 
   Object.entries(SPELLBOOK).forEach(([elementId, pool]) => {
-    if (pool.length !== 3) {
-      problems.push(`Element "${elementId}" has ${pool.length} spells, expected 3`);
+    if (pool.length === 0) {
+      problems.push(`Element "${elementId}" has an empty invocation pool`);
     }
-    pool.forEach((spell, i) => {
-      const where = `${elementId}[${i}] (${spell.id || "no id"})`;
+    pool.forEach((entry, i) => {
+      const where = `${elementId}[${i}] (${entry.id || "no id"})`;
 
       REQUIRED.forEach((field) => {
-        const v = spell[field];
+        const v = entry[field];
         if (v === undefined || v === null || v === "") {
           problems.push(`${where}: missing "${field}"`);
         }
       });
 
-      if (!Array.isArray(spell.invocation) || spell.invocation.length === 0) {
-        problems.push(`${where}: invocation must be a non-empty array`);
-      }
-      if (spell.translation !== null && !Array.isArray(spell.translation)) {
-        problems.push(`${where}: translation must be an array or null`);
-      }
-      if (!STATUS_LABEL[spell.status]) {
-        problems.push(`${where}: unknown status "${spell.status}"`);
-      }
       // guards against Ignis text ending up under Aqua metadata
-      if (ID_PREFIX[elementId] && !String(spell.id).startsWith(ID_PREFIX[elementId])) {
+      if (ID_PREFIX[elementId] && !String(entry.id).startsWith(ID_PREFIX[elementId])) {
         problems.push(`${where}: id should start with "${ID_PREFIX[elementId]}"`);
       }
-      if (seenIds.has(spell.id)) problems.push(`${where}: duplicate id`);
-      seenIds.add(spell.id);
+      if (seenIds.has(entry.id)) problems.push(`${where}: duplicate id`);
+      seenIds.add(entry.id);
     });
   });
 
   if (problems.length) {
-    console.warn("[arcane] spell data problems:\n" + problems.join("\n"));
+    console.warn("[arcane] invocation data problems:\n" + problems.join("\n"));
   }
   return problems;
 }

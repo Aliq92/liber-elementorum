@@ -141,14 +141,15 @@ src/
   config.js                      centralized interaction timings (charge threshold etc.)
   main.js                        boots ArcaneInterface, performance mode, quality toggle, SW registration
   performanceMode.js             shared AUTO/FULL/PERFORMANCE visual-quality detection + switching
-  data/spells.js                 archive entries per element: paraphrased text, source
-                                 metadata, alchemical glyph svg, theme colours — plus the
-                                 sourcing policy those entries follow
+  rotation.js                    shuffle-bag rotation for the invocation archive, persisted per element
+  data/spells.js                 archive entries per element: du'a/adhkar/Qur'anic recitations, source
+                                 metadata, glyph svg, theme colours — plus the sourcing policy those
+                                 entries follow
   components/
     ArcaneInterface.js           root controller: wires buttons, display, particles, sound, parallax
     SpellButton.js                per-button behavior: pointer tilt, charge visuals, tap/hold routing
     LongPress.js                  reusable hold detection: charge progress, cancellation, keyboard parity
-    SpellDisplay.js               renders/animates the floating spell card, crossfades between spells
+    SpellDisplay.js               renders/animates the floating card; casting -> reading-space transition
     ParticleLayer.js              canvas-based ambient dust + per-element burst effects; quality-aware budget
     soundEngine.js                tiny WebAudio synth — no audio files, just oscillators
   styles/
@@ -331,73 +332,89 @@ every part of the *press* feedback — contact-point capture, ripple, depress,
 rebound, particle burst, spell reveal — runs off `pointerdown`/`pointerup`
 directly and works the same on touch as on mouse.
 
-## Historical content & sourcing policy
+## Archive content & sourcing policy
 
-Two bodies of content: the four **element** entries (short press) and twelve
-**spell records** (long press, three per element). The sourcing rules are
-deliberately strict and are restated at the top of `src/data/spells.js`:
+Two bodies of content, both in `src/data/spells.js`: the four **element**
+entries (short press — general Western classical-element history, unrelated
+to the material below) and a **protective invocation archive** (long press)
+of authentic Islamic du'a, adhkar, Qur'anic protection verses and prophetic
+ruqyah — 19 records across the four elements.
 
-- **Two honest statuses, never blurred.** `VERIFIED HISTORICAL TEXT` is used
-  only where the quoted text is short, extremely widely reproduced, and given
-  as standardly printed (3 of 12 records). `HISTORICAL PARAPHRASE` marks our
-  own descriptive summary of a practice genuinely attested in the named
-  source (9 of 12). A paraphrase is never dressed up as a quotation. Every
-  element entry is paraphrase.
-- **The elemental filing is ours, and says so.** Most historical charms were
-  not classified by element. Grouping them under fire/water/earth/air is a
-  navigation decision made by this interface, and every spell record carries
-  an `associationNote` stating that explicitly rather than implying the
-  sources made the association.
-- **Disputes are preserved, not smoothed.** The SATOR square's meaning and
-  the reading of "Erce" are both genuinely unsettled; the records say so
-  instead of picking a tidy translation.
-- **No invented apparatus.** No fabricated manuscript titles, shelfmarks,
-  dates, authors, or "ancient spells". The `catalogMark` shown on each card
-  (`ELEM I / IV`) is an index within this interface — it is not styled as,
-  and is not, a manuscript reference.
-- **Only uncontroversial claims.** The substantive content is limited to
-  things that are standard in the history of the subject: the element/quality
-  pairings (hot–dry, cold–moist, etc.) from the Aristotelian scheme, the
-  zodiacal triplicities, the alchemical triangle notation, and the dating and
-  structure of the works cited.
-- **No efficacy claims.** Each source panel closes with a line stating the
-  material is presented as historical record only.
+- **Accurate terminology, always.** Nothing here is labelled "spell". Every
+  record's `type` field (`Du'a`, `Dhikr`, `Qur'anic Recitation`, `Ruqyah`) is
+  what's actually shown on the card. The app's own interaction verbs
+  (invoke, manifest, casting) describe the fictional interface's action, not
+  the text itself.
+- **Every record checked against a primary reference before inclusion.**
+  Arabic, transliteration, reference (surah:ayah or collection+number), and
+  authenticity grading were checked against sunnah.com and standard Qur'anic
+  text before being written into `spells.js` — see the header comment there.
+  Where a hadith's grading couldn't be confirmed with confidence, the record
+  was left out rather than included with a guessed citation. Quality over an
+  arbitrary count is why the archive has 19 records, not a rounder number.
+- **Commentary is never presented as the text.** `notes` is our own
+  historical/contextual framing (who narrated it, what a source says about
+  its virtue); `arabic`/`transliteration`/`meaning` are the recitation
+  itself. The two are never blended.
+- **The elemental filing is ours, and says so.** IGNIS/AQUA/TERRA/AERIS
+  group the archive by theme (strength, healing, refuge, protection) as a
+  navigation choice made by this interface — not a claim that Islam
+  associates the four classical elements with specific prayers or
+  correspondences. Stated explicitly in `FRAMEWORK_NOTE`, shown in every
+  record's source panel.
+- **No efficacy claims.** Every source panel closes with: *"Religious texts
+  are presented for reflection and historical/devotional context. The
+  interface does not claim supernatural guarantees."* The same note also
+  appears once, permanently, in the archive's footer.
 
-**One correction worth flagging:** the brief for this work described the *Ars
-Paulina* as explicitly dividing spirits by the four elements. That
-overstates it. The *Ars Paulina* (third book of the *Lemegeton*) is organised
-by the twenty-four hours of the day and by the degrees of the zodiac; its
-link to the four elements is indirect, via the grouping of the zodiac signs
-into triplicities. The explicit four-element framework is much better
-attested in Agrippa and in the classical sources behind him. The UI cites
-Agrippa and Ptolemy as the primary references and states this qualification
-in the `FRAMEWORK_NOTE` shown in every source panel, rather than encoding the
-stronger claim.
+### The invocation archive
 
-Works referenced by the element entries: Agrippa, *De occulta philosophia
-libri tres*, Book I (drafted c. 1510, printed Cologne 1533); Ptolemy,
-*Tetrabiblos* (2nd c. AD), for the triplicities.
-
-### The twelve spell records
-
-| Element | Record | Status | Source |
+| Element | Record | Type | Source |
 |---|---|---|---|
-| Fire | The Diminishing Word | verified | Serenus Sammonicus, *Liber Medicinalis*, early 3rd c. AD |
-| Fire | Divination by Lamp | paraphrase | Greek Magical Papyri (lychnomancy) |
-| Fire | The Need-Fire | paraphrase | Grimm, *Deutsche Mythologie*, 1835 |
-| Water | Divination by Bowl | paraphrase | Greek Magical Papyri (lecanomancy) |
-| Water | The Staunching of the River | paraphrase | European blood-charm tradition ("Flum Jordan" type) |
-| Water | What Was Given to the Spring | paraphrase | Curse tablets, Aquae Sulis (Bath), 2nd–4th c. AD |
-| Earth | Remedy for Fields | verified | Æcerbot, BL Cotton MS Caligula A. vii, 11th c. |
-| Earth | The Sator Square | verified | Pompeii wall inscriptions, before AD 79 |
-| Earth | The Nine Herbs | paraphrase | Lacnunga, BL Harley MS 585, 10th–11th c. |
-| Air | Drawing Breath from the Rays | paraphrase | "Mithras Liturgy", within PGM IV |
-| Air | Wind Sold in Knots | paraphrase | Olaus Magnus, *Historia de gentibus septentrionalibus*, 1555 |
-| Air | The Watching of Birds | paraphrase | Cicero, *De divinatione*, 44 BC |
+| Ignis | Hasbunallahu wa ni'mal Wakil | Qur'anic Recitation | Qur'an 3:173 |
+| Ignis | Rabbana Afrigh 'Alayna Sabran | Qur'anic Recitation | Qur'an 2:250 |
+| Ignis | Fa-inna Ma'al-'Usri Yusra | Qur'anic Recitation | Qur'an 94:5-6 |
+| Ignis | La Hawla wa la Quwwata illa Billah | Dhikr | Bukhari 6384; Muslim 2704 |
+| Ignis | Allahumma la Sahla illa ma Ja'altahu Sahla | Du'a | Ibn Hibban 2427 |
+| Aqua | Du'a of Yunus | Qur'anic Recitation | Qur'an 21:87 |
+| Aqua | Refuge from Anxiety and Sorrow | Du'a | Bukhari 6369 |
+| Aqua | Ruqyah for Pain | Ruqyah | Muslim 2202 |
+| Aqua | Ruqyah of Jibril | Ruqyah | Muslim 2186 |
+| Aqua | Ruqyah for the Sick | Ruqyah | Bukhari 5743; Muslim 2191 |
+| Aqua | Ruqyah by Surah Al-Fatiha | Qur'anic Recitation | Qur'an 1:1-7; Bukhari 5736 |
+| Terra | Ayat al-Kursi | Qur'anic Recitation | Qur'an 2:255 |
+| Terra | Bismillahil-ladhi la Yadurru | Dhikr | Tirmidhi 3388; Ibn Majah 3869 |
+| Terra | Refuge on Entering a Place | Du'a | Muslim 2708a |
+| Terra | Sleep and Waking | Du'a | Bukhari 6324 |
+| Aeris | Surah Al-Ikhlas | Qur'anic Recitation | Qur'an 112:1-4 |
+| Aeris | Surah Al-Falaq | Qur'anic Recitation | Qur'an 113:1-5 |
+| Aeris | Surah An-Nas | Qur'anic Recitation | Qur'an 114:1-6 |
+| Aeris | Refuge for Hasan and Husain | Du'a | Bukhari 3371 |
 
-Selection is random per cast, avoiding an immediate repeat (`pickSpell()`).
-Metadata travels with its spell — the source block is never randomised
-independently of the text it describes.
+### Rotation
+
+Selection uses a shuffle-bag (`src/rotation.js`), not plain random: every
+record in an element's pool is served exactly once before any repeat, then
+the bag reshuffles — checked so a reshuffle never opens on the record the
+previous cycle just ended on. Each element's rotation is independent and
+persists in `localStorage` (`arcane-rotation-v1`), so reloading or reopening
+the installed PWA continues the sequence rather than restarting it. A
+changed record pool (ids added/removed in some future revision) is detected
+via a signature check and safely starts a fresh rotation instead of reading
+mismatched saved state.
+
+### Reading space
+
+Long-pressing settles into two visually distinct phases, driven by
+`SpellDisplay`'s `is-casting-phase` → `is-reading` transition and mirrored
+onto `#arcane-stage` for the background: **casting** (~1.1s, luminous,
+moving — the existing manifestation flourish) then **reading** (calm,
+near-stationary — ambient particles drop to a near-zero tier via
+`ParticleLayer.setReadingMode()`, background rings dim substantially, and a
+slow ~5s breathing pulse on the manifestation orb is the only motion left,
+skipped under `prefers-reduced-motion`). Arabic is revealed as a single RTL
+block — never per-letter or per-word — sized and spaced for mobile legibility
+(generous line-height, no letter-spacing, no competing text-shadow).
 
 ---
 

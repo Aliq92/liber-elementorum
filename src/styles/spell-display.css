@@ -274,6 +274,42 @@
   --orb-strength: 0.72;
 }
 
+/* READING SPACE: deeper still, once the settle has actually completed (see
+   SpellDisplay._runCastingPhase). This is the calm chamber the recitation is
+   read in — no glow strong enough to compete with the Arabic beneath it. */
+.spell-display__card.is-reading .manifest-stage {
+  --orb-scale: 0.5;
+  --orb-strength: 0.34;
+}
+
+.spell-display__card.is-reading .manifest-ring--outer,
+.spell-display__card.is-reading .manifest-ring--inner {
+  animation-play-state: paused;
+}
+
+/* very slow optional breathing rhythm — a calm visual pace, not a claim */
+.spell-display__card.is-reading .manifest-orb {
+  animation: reading-breath 5s ease-in-out infinite;
+}
+
+@keyframes reading-breath {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(var(--orb-scale));
+    opacity: calc(0.5 * var(--orb-strength));
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(calc(var(--orb-scale) * 1.06));
+    opacity: calc(0.62 * var(--orb-strength));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spell-display__card.is-reading .manifest-orb {
+    animation: none;
+  }
+}
+
 /* the archive card keeps the glyph but never the full manifestation */
 .manifest-stage--quiet {
   --orb-scale: 0.62;
@@ -346,6 +382,80 @@
 .invocation-content {
   filter: none;
   backdrop-filter: none;
+}
+
+/* ---------- Arabic / transliteration / meaning / purpose ----------
+   Arabic is the primary text: largest, highest contrast, most generous
+   spacing. Revealed as a single block (not per-letter/per-word spans) —
+   the manifestation animation may only ever animate the block as a whole. */
+
+.invocation-arabic {
+  direction: rtl;
+  unicode-bidi: isolate;
+  margin: 0.9rem auto 0;
+  padding: 0 0.4rem;
+  max-width: 34ch;
+  font-family: "Noto Naskh Arabic", "Traditional Arabic", "Segoe UI", "Al Bayan",
+    "Geeza Pro", "Arabic Typesetting", var(--font-body), sans-serif;
+  font-size: clamp(1.4rem, 4.6vmin, 2rem);
+  line-height: 2.1;
+  letter-spacing: normal;
+  color: var(--text-primary);
+  text-shadow: none;
+  opacity: 0;
+  transform: translateY(8px);
+  animation: card-part-in 0.6s var(--ease-out) forwards;
+  animation-delay: 0.2s;
+}
+
+.invocation-transliteration {
+  margin: 1.1rem 0 0;
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: clamp(0.82rem, 2vmin, 0.95rem);
+  line-height: 1.6;
+  color: var(--text-muted);
+  opacity: 0;
+  transform: translateY(8px);
+  animation: card-part-in 0.5s var(--ease-out) forwards;
+  animation-delay: 0.38s;
+}
+
+.invocation-meaning,
+.invocation-purpose {
+  margin: 0.7rem 0 0;
+  font-size: clamp(0.86rem, 2vmin, 0.98rem);
+  line-height: 1.6;
+  color: var(--text-primary);
+  opacity: 0;
+  transform: translateY(8px);
+  animation: card-part-in 0.5s var(--ease-out) forwards;
+  animation-delay: 0.48s;
+}
+
+.invocation-purpose {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  animation-delay: 0.56s;
+}
+
+.invocation-field__label {
+  display: block;
+  margin-bottom: 0.2em;
+  font-family: var(--font-display);
+  font-size: 0.55rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--active-color);
+  opacity: 0.8;
+}
+
+@media (max-width: 480px) {
+  .invocation-arabic {
+    font-size: clamp(1.25rem, 6vmin, 1.6rem);
+    line-height: 1.95;
+    max-width: 100%;
+  }
 }
 
 /* archival catalog marking — an index within this interface, not a shelfmark */

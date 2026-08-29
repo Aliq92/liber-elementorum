@@ -174,6 +174,39 @@
   transition: opacity 0.6s ease;
 }
 
+/* ---------- reading space ----------
+   The dedicated calm chamber for actually reading a manifested recitation
+   (see ArcaneInterface._enterReading / SpellDisplay's is-reading class).
+   Decorative geometry recedes to near-nothing — kept only as the faintest
+   edge lighting so the active element still reads as itself — so nothing
+   behind the card competes with the Arabic on it. Buttons are left alone:
+   they are controls, not decoration, and must stay fully reachable. */
+
+.arcane-stage.is-reading .bg-fog,
+.arcane-stage.is-reading .bg-vortex,
+.arcane-stage.is-reading .bg-stars {
+  opacity: 0.16;
+  transition: opacity 1.1s ease;
+}
+
+.arcane-stage.is-reading .ring-runes,
+.arcane-stage.is-reading .ring-satellites,
+.arcane-stage.is-reading .ring-orbit--outer {
+  opacity: 0.12;
+  transition: opacity 1.1s ease;
+}
+
+.arcane-stage.is-reading .ring-arc--a,
+.arcane-stage.is-reading .ring-arc--b {
+  opacity: 0.35;
+}
+
+.arcane-stage.is-reading .ring-core {
+  box-shadow: 0 0 22px color-mix(in srgb, var(--active-color) 18%, transparent),
+    inset 0 0 16px color-mix(in srgb, var(--active-color) 10%, transparent);
+  transition: box-shadow 1.1s ease;
+}
+
 /* ---------- sound toggle ---------- */
 
 .sound-toggle {
@@ -287,6 +320,36 @@
   .archive-inscription {
     font-size: 0.46rem;
     letter-spacing: 0.2em;
+  }
+}
+
+/* ---------- content disclaimer (item 30) ----------
+   One small, permanently-present note — deliberately not repeated per
+   invocation. Typography matches the existing per-record fine print
+   (.spell-source__disclaimer) so it reads as part of the same voice. */
+
+.archive-disclaimer {
+  position: absolute;
+  right: max(20px, env(safe-area-inset-right));
+  bottom: max(16px, env(safe-area-inset-bottom));
+  z-index: 20;
+  margin: 0;
+  max-width: min(46vw, 260px);
+  text-align: right;
+  font-family: var(--font-display);
+  font-size: 0.44rem;
+  letter-spacing: 0.06em;
+  line-height: 1.55;
+  text-transform: none;
+  color: var(--text-muted);
+  opacity: 0.42;
+  pointer-events: none;
+}
+
+@media (max-width: 640px) {
+  .archive-disclaimer {
+    max-width: min(50vw, 190px);
+    font-size: 0.4rem;
   }
 }
 

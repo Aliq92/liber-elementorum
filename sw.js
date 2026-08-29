@@ -11,7 +11,7 @@
  * scoped to same-origin GET requests; it never touches cross-origin traffic.
  */
 
-const CACHE_VERSION = "v1";
+const CACHE_VERSION = "v2";
 const CACHE_NAME = `arcane-interface-${CACHE_VERSION}`;
 
 const PRECACHE_URLS = [
@@ -23,6 +23,7 @@ const PRECACHE_URLS = [
   "src/main.js",
   "src/native.js",
   "src/performanceMode.js",
+  "src/rotation.js",
   "src/data/spells.js",
   "src/components/ArcaneInterface.js",
   "src/components/SpellButton.js",

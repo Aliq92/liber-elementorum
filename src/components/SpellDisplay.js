@@ -1,4 +1,4 @@
-import { FRAMEWORK_NOTE, DISCLAIMER, STATUS_LABEL } from "../data/spells.js";
+import { FRAMEWORK_NOTE, DISCLAIMER } from "../data/spells.js";
 import { CASTING_PHASE_MS } from "../config.js";
 import { hapticLight } from "../native.js";
 
@@ -19,10 +19,12 @@ function row(label, value) {
 }
 
 export class SpellDisplay {
-  constructor(root, { onReturnToArchive } = {}) {
+  constructor(root, { onReturnToArchive, onReadingStart, onReadingEnd } = {}) {
     this.root = root;
     this.card = root.querySelector("#spell-card");
     this.onReturnToArchive = onReturnToArchive || (() => {});
+    this.onReadingStart = onReadingStart || (() => {});
+    this.onReadingEnd = onReadingEnd || (() => {});
     this._materializeTimer = null;
     this.mode = null;
 
@@ -47,6 +49,11 @@ export class SpellDisplay {
   closeRecord() {
     const toggle = this.card.querySelector(".spell-source__toggle");
     if (toggle && toggle.getAttribute("aria-expanded") === "true") this._toggleSource(toggle);
+  }
+
+  /** Currently showing the deep-quiet reading phase of an invoked record? */
+  isReading() {
+    return this.card.classList.contains("is-reading");
   }
 
   _toggleSource(toggle) {
@@ -92,24 +99,34 @@ export class SpellDisplay {
 
   /**
    * CASTING → READING. The dramatic phase is deliberately short-lived: once it
-   * ends the orb contracts and dims so the invocation is the loudest thing on
-   * the card. Timer is always cleared first so rapid switching can't leave a
-   * card stuck in the bright casting state.
+   * ends the orb contracts and dims, and the card enters the deep-quiet
+   * READING state — the dedicated space for actually reading the recitation,
+   * distinct from both the loud casting flourish and the calmer-but-still-
+   * decorated archive view. Timer is always cleared first so rapid switching
+   * can't leave a card stuck in the bright casting state.
    */
   _runCastingPhase() {
     window.clearTimeout(this._castPhaseTimer);
     this.card.classList.add("is-casting-phase");
+    if (this.card.classList.contains("is-reading")) {
+      this.card.classList.remove("is-reading");
+      this.onReadingEnd();
+    }
     this._castPhaseTimer = window.setTimeout(() => {
       this._castPhaseTimer = null;
       this.card.classList.remove("is-casting-phase");
-      hapticLight(); // subtle secondary pulse as the spell settles — no-op on plain web
+      this.card.classList.add("is-reading");
+      hapticLight(); // subtle secondary pulse as the reading space settles — no-op on plain web
+      this.onReadingStart();
     }, CASTING_PHASE_MS);
   }
 
   _clearCastingPhase() {
     window.clearTimeout(this._castPhaseTimer);
     this._castPhaseTimer = null;
-    this.card.classList.remove("is-casting-phase");
+    const wasReading = this.card.classList.contains("is-reading");
+    this.card.classList.remove("is-casting-phase", "is-reading");
+    if (wasReading) this.onReadingEnd();
   }
 
   /** Swap content, crossfading if something is already open. */
@@ -131,7 +148,7 @@ export class SpellDisplay {
   showArchive(element, originPosition) {
     this.mode = "archive";
     this._setTheme(element, originPosition);
-    this._clearCastingPhase(); // the archive card never casts
+    this._clearCastingPhase(); // the archive card never casts or enters reading mode
 
     this._swap(() => {
       const lines = element.fragment
@@ -200,48 +217,26 @@ export class SpellDisplay {
     this._setTheme(element, originPosition);
 
     this._swap(() => {
-      const body =
-        spell.form === "grid"
-          ? `<div class="spell-incantation spell-incantation--grid">${spell.invocation
-              .map((line, i) => `<span class="spell-line" style="--i:${i}">${esc(line)}</span>`)
-              .join("")}</div>`
-          : `<div class="spell-incantation">${spell.invocation
-              .map((line, i) => `<span class="spell-line" style="--i:${i}">${esc(line)}</span>`)
-              .join("")}</div>`;
-
-      const translation = spell.translation
-        ? `<div class="spell-translation">${spell.translation.map((l) => `<span>${esc(l)}</span>`).join("")}</div>`
-        : "";
-
-      const langNote = spell.invocationLang
-        ? `<p class="spell-langnote">${esc(spell.invocationLang)}</p>`
-        : "";
-
       const rows =
         row("Source", esc(spell.source)) +
-        (spell.author ? row("Author", esc(spell.author)) : "") +
-        row("Tradition", esc(spell.tradition)) +
-        row("Period", esc(spell.period)) +
-        row("Language", esc(spell.language)) +
-        (spell.edition ? row("Edition", esc(spell.edition)) : "") +
-        row(
-          "Status",
-          `<span class="spell-status spell-status--${spell.status}">${esc(STATUS_LABEL[spell.status])}</span>`
-        );
+        row("Reference", esc(spell.reference)) +
+        (spell.recommendedContext ? row("Context", esc(spell.recommendedContext)) : "") +
+        (spell.repetition ? row("Repetition", esc(spell.repetition)) : "") +
+        row("Authenticity", esc(spell.authenticity));
 
       this._render(
         `
-        <div class="spell-card__mark" aria-hidden="true">${esc(element.element)} <span>·</span> INVOCATION</div>
+        <div class="spell-card__mark" aria-hidden="true">${esc(element.element)} <span>·</span> RECORD</div>
 
         <header class="spell-header">
           <p class="spell-card__eyebrow">${esc(element.element)}</p>
           <h2 class="spell-card__title spell-card__title--spell">${esc(spell.title)}</h2>
-          <p class="spell-card__classification">${esc(spell.classification)}</p>
+          <p class="spell-card__classification">${esc(spell.type)}</p>
         </header>
 
         <!-- Decorative only. Self-contained: its own positioning context, its
              own flow height, pointer-events:none, and it never overlaps the
-             invocation below it. -->
+             Arabic/translation below it. -->
         <div class="manifest-stage" aria-hidden="true">
           <span class="manifest-ring manifest-ring--outer"></span>
           <span class="manifest-ring manifest-ring--inner"></span>
@@ -251,16 +246,15 @@ export class SpellDisplay {
 
         <div class="invocation-content">
           <div class="spell-card__rule" aria-hidden="true"><span></span><i>&#10022;</i><span></span></div>
-          ${body}
-          ${langNote}
-          ${translation}
+          <p class="invocation-arabic" dir="rtl" lang="ar">${esc(spell.arabic)}</p>
+          <p class="invocation-transliteration">${esc(spell.transliteration)}</p>
+          <p class="invocation-meaning"><span class="invocation-field__label">Meaning</span>${esc(spell.meaning)}</p>
+          ${
+            spell.purpose
+              ? `<p class="invocation-purpose"><span class="invocation-field__label">Purpose</span>${esc(spell.purpose)}</p>`
+              : ""
+          }
         </div>
-
-        <dl class="spell-brief">
-          ${row("Source", esc(spell.source))}
-          ${row("Tradition", esc(spell.tradition))}
-          ${row("Period", esc(spell.period))}
-        </dl>
 
         <div class="spell-source">
           <button class="spell-source__toggle" type="button" aria-expanded="false"
@@ -272,8 +266,7 @@ export class SpellDisplay {
           </button>
           <div class="spell-source__panel" id="spell-source-panel" hidden>
             <dl class="spell-source__grid">${rows}</dl>
-            <p class="spell-source__notes">${esc(spell.historicalNote)}</p>
-            <p class="spell-source__notes spell-source__notes--framework">${esc(spell.associationNote)}</p>
+            <p class="spell-source__notes">${esc(spell.notes)}</p>
             <p class="spell-source__disclaimer">${esc(DISCLAIMER)}</p>
           </div>
 
